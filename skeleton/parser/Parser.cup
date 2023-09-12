@@ -27,27 +27,34 @@ parser code {:
 
 :};
 
+//terminal symbols
 terminal PLUS, MINUS, LPAREN, RPAREN;
 terminal TIMES, U_MINUS, RETURN, SEMICOLON;
 terminal Long    INTCONST;
 
+//non-terminal symbols
 non terminal Program         program;
 non terminal Expr            expr;
 non terminal Stmt            stmt;
 non terminal BinaryExpr      binaryExpr;
 
+//operator precedence
 precedence left PLUS, MINUS;
 precedence left TIMES;
 precedence left U_MINUS;
 
+//start symbol
 start with program;
 
+//beginning of grammar rules
+//program may become an expression or a statement
 program ::= expr:e
             {: RESULT = new Program(e, loc(eleft, eright)); :}
          |  stmt:s
             {: RESULT = new Program(s, loc(sleft, sright)); :}
          ;
 
+//an expression will become a terminal and contains integers, parenthasis, and the unary minus
 expr ::= INTCONST:c
          {: RESULT = new ConstExpr(c, loc(cleft, cright)); :}
       |  binaryExpr:e
@@ -60,10 +67,12 @@ expr ::= INTCONST:c
          %prec U_MINUS
       ;
 
+//a statement will become an return and handle a semicolon only for now (if/else/while/print will be added later as shown in documentation)
 stmt ::= RETURN expr:e SEMICOLON
          {: RESULT = new Stmt(e, loc(eleft, eright)); :}
       ;
 
+//a binary expression will handle the current operators
 binaryExpr ::= expr:e1 PLUS expr:e2
                {: RESULT = new BinaryExpr(e1, BinaryExpr.PLUS, e2, loc(e1left, e1right)); :}
             |  expr:e1 MINUS expr:e2

@@ -101,6 +101,7 @@ public class Interpreter {
         }
     }
 
+    //must evaluate on expression, so need to cover the case that a program was constructed with a statement by getting the expression from the statement
     Object executeRoot(Program astRoot, long arg) {
         return evaluate(astRoot.getExpr() != null ? astRoot.getExpr() : astRoot.getStmt().getExpr());
     }
@@ -113,7 +114,7 @@ public class Interpreter {
             switch (binaryExpr.getOperator()) {
                 case BinaryExpr.PLUS: return (Long)evaluate(binaryExpr.getLeftExpr()) + (Long)evaluate(binaryExpr.getRightExpr());
                 case BinaryExpr.MINUS: return (Long)evaluate(binaryExpr.getLeftExpr()) - (Long)evaluate(binaryExpr.getRightExpr());
-                case BinaryExpr.TIMES: return (Long)evaluate(binaryExpr.getLeftExpr()) * (Long)evaluate(binaryExpr.getRightExpr());
+                case BinaryExpr.TIMES: return (Long)evaluate(binaryExpr.getLeftExpr()) * (Long)evaluate(binaryExpr.getRightExpr()); //multiplication for proj1
                 default: throw new RuntimeException("Unhandled operator");
             }
         } else {

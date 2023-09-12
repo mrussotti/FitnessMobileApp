@@ -63,11 +63,11 @@ white_space = {new_line} | [ \t\f]
 /* separators */
 "+"               { return symbol("+",  PLUS); }
 "-"               { return symbol("-",  MINUS); }
-"*"               { return symbol("*",  TIMES); } //added for proj1
 "("               { return symbol("(",  LPAREN); }
 ")"               { return symbol(")",  RPAREN); }
+"*"               { return symbol("*",  TIMES); } //multiplication for proj1
 
-/* return and end line */
+/* End statement or program */
 "return"          { return symbol("return",  RETURN); }
 ";"               { return symbol(";",  SEMICOLON); }
 
