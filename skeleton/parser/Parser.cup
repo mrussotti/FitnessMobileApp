@@ -28,18 +28,24 @@ parser code {:
 :};
 
 terminal PLUS, MINUS, LPAREN, RPAREN;
+terminal TIMES, U_MINUS, RETURN, SEMICOLON;
 terminal Long    INTCONST;
 
 non terminal Program         program;
 non terminal Expr            expr;
+non terminal Stmt            stmt;
 non terminal BinaryExpr      binaryExpr;
 
 precedence left PLUS, MINUS;
+precedence left TIMES;
+precedence left U_MINUS;
 
 start with program;
 
 program ::= expr:e
             {: RESULT = new Program(e, loc(eleft, eright)); :}
+         |  stmt:s
+            {: RESULT = new Program(s, loc(sleft, sright)); :}
          ;
 
 expr ::= INTCONST:c
@@ -48,10 +54,20 @@ expr ::= INTCONST:c
          {: RESULT = e; :}
       |  LPAREN expr:e RPAREN
          {: RESULT = e; :}
+         /* format given in CUP documentation */
+      | MINUS expr:e
+         {: RESULT = new BinaryExpr(new ConstExpr(0, null), BinaryExpr.MINUS, e, loc(eleft, eright)); :}
+         %prec U_MINUS
+      ;
+
+stmt ::= RETURN expr:e SEMICOLON
+         {: RESULT = new Stmt(e, loc(eleft, eright)); :}
       ;
 
 binaryExpr ::= expr:e1 PLUS expr:e2
                {: RESULT = new BinaryExpr(e1, BinaryExpr.PLUS, e2, loc(e1left, e1right)); :}
             |  expr:e1 MINUS expr:e2
                {: RESULT = new BinaryExpr(e1, BinaryExpr.MINUS, e2, loc(e1left, e1right)); :}
+            |  expr:e1 TIMES expr:e2
+               {: RESULT = new BinaryExpr(e1, BinaryExpr.TIMES, e2, loc(e1left, e1right)); :}
             ;

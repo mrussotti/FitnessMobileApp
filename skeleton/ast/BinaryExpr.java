@@ -4,6 +4,7 @@ public class BinaryExpr extends Expr {
 
     public static final int PLUS = 1;
     public static final int MINUS = 2;
+    public static final int TIMES = 3;     //added for proj1
 
     final Expr expr1;
     final int operator;
@@ -34,6 +35,7 @@ public class BinaryExpr extends Expr {
         switch (operator) {
             case PLUS:  s = "+"; break;
             case MINUS: s = "-"; break;
+            case TIMES: s = "*"; break; //added for proj 1
         }
         return "(" + expr1 + " " + s + " " + expr2 + ")";
     }

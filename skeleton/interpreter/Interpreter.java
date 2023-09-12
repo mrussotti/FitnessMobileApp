@@ -102,7 +102,7 @@ public class Interpreter {
     }
 
     Object executeRoot(Program astRoot, long arg) {
-        return evaluate(astRoot.getExpr());
+        return evaluate(astRoot.getExpr() != null ? astRoot.getExpr() : astRoot.getStmt().getExpr());
     }
 
     Object evaluate(Expr expr) {
@@ -113,6 +113,7 @@ public class Interpreter {
             switch (binaryExpr.getOperator()) {
                 case BinaryExpr.PLUS: return (Long)evaluate(binaryExpr.getLeftExpr()) + (Long)evaluate(binaryExpr.getRightExpr());
                 case BinaryExpr.MINUS: return (Long)evaluate(binaryExpr.getLeftExpr()) - (Long)evaluate(binaryExpr.getRightExpr());
+                case BinaryExpr.TIMES: return (Long)evaluate(binaryExpr.getLeftExpr()) * (Long)evaluate(binaryExpr.getRightExpr());
                 default: throw new RuntimeException("Unhandled operator");
             }
         } else {
