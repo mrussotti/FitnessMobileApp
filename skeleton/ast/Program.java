@@ -4,7 +4,7 @@ import java.io.PrintStream;
 
 public class Program extends ASTNode {
 
-    //a program will have expressions and statements
+    //a program will have expressions or statements
     final Expr expr;
     final Stmt stmt;
 
