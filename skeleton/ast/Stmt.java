@@ -2,7 +2,9 @@ package ast;
 
 import java.io.PrintStream;
 
-public class Stmt extends ASTNode {
+public abstract class Stmt extends StmtList {
+
+    //must implement if and if-else, and return(?) and <stmtList>
 
     //statements have an expression
     final Expr expr;

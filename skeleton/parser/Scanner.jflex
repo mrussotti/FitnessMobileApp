@@ -49,7 +49,9 @@ import interpreter.Interpreter;
 
 
 IntLiteral = 0 | [1-9][0-9]*
-
+// HERE
+// identifiers are strings that begin with a character
+Identifier = [a-z]
 new_line = \r|\n|\r\n;
 
 white_space = {new_line} | [ \t\f]
@@ -60,22 +62,55 @@ white_space = {new_line} | [ \t\f]
 /* int literals */
 {IntLiteral} { return symbol("Intconst", INTCONST, Long.parseLong(yytext())); }
 
+
+/* types */
+"int"             { return symbol("int", INT); }
+"Ref"             { return symbol("Ref", REF); }
+"Q"             { return symbol("Q", _Q); }
+
 /* separators */
 "+"               { return symbol("+",  PLUS); }
 "-"               { return symbol("-",  MINUS); }
 "("               { return symbol("(",  LPAREN); }
 ")"               { return symbol(")",  RPAREN); }
 "*"               { return symbol("*",  TIMES); } //multiplication for proj1
+"{"               { return symbol("{",  LCURL); }
+"}"               { return symbol("}",  RCURL); }
+","               { return symbol(",", COMMA); }
 
 /* End statement or program */
 "return"          { return symbol("return",  RETURN); }
 ";"               { return symbol(";",  SEMICOLON); }
+
+/* Assignment */
+"="               { return symbol("=", EQUALS); }
+
+/* Print */
+"print"           { return symbol("print", PRINT); }
+
+/* Compare */
+"<="              { return symbol("<=", LTE); }
+">="              { return symbol(">=", GTE); }
+"=="              { return symbol("==", EQ); }
+"!="              { return symbol("!=", NOTEQ); }
+"<"              { return symbol("<", LT); }
+">"              { return symbol(">", GT); }
+"&&"              { return symbol("&&", AND); }
+"||"              { return symbol("||", OR); }
+"!"              { return symbol("!", NOT); }
+
+/* If/If-Else */
+/* How to determine if IF is followed by Else? */
+//"if ("
 
 /* comments */
 "/*" [^*] ~"*/" | "/*" "*"+ "/"
                   { /* ignore comments */ }
 
 {white_space}     { /* ignore */ }
+
+// identifier
+{Identifier} { return symbol("Ident", IDENT, yytext()); }
 
 }
 

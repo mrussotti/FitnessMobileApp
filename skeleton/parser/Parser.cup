@@ -28,15 +28,25 @@ parser code {:
 :};
 
 //terminal symbols
-terminal PLUS, MINUS, LPAREN, RPAREN;
-terminal TIMES, U_MINUS, RETURN, SEMICOLON;
-terminal Long    INTCONST;
+terminal PLUS, MINUS, LPAREN, RPAREN, LCURL, RCURL, PRINT, COMMA;
+terminal TIMES, U_MINUS, RETURN, SEMICOLON, EQUALS;
+terminal INTCONST;
+terminal IDENT;
+terminal INT, REF, _Q;
+terminal LTE, GTE, EQ, NOTEQ, LT, GT, AND, OR, NOT;
 
 //non-terminal symbols
 non terminal Program         program;
-non terminal Expr            expr;
+non terminal FuncDef         funcDef;
+non terminal VarDecl         varDecl;
+non terminal Type            type;
+non terminal StmtList        stmtList;
 non terminal Stmt            stmt;
+non terminal ExprList        exprList;
+non terminal NeExprList      neExprList;
+non terminal Expr            expr;
 non terminal BinaryExpr      binaryExpr;
+non terminal Cond            cond;
 
 //operator precedence
 precedence left PLUS, MINUS;
@@ -48,15 +58,61 @@ start with program;
 
 //beginning of grammar rules
 //program may become an expression or a statement
-program ::= expr:e
-            {: RESULT = new Program(e, loc(eleft, eright)); :}
-         |  stmt:s
-            {: RESULT = new Program(s, loc(sleft, sright)); :}
+program ::= funcDef:f
+            {: RESULT = new Program(f, loc(fleft, fright)); :}
          ;
+
+//how is location decided for the expressions with multiple non-terminals?
+funcDef ::= varDecl:v LCURL stmtList:s RCURL
+         {: RESULT = new FuncDef(v, s, loc(vleft, vright)); :} 
+      ;
+
+//must figure out identifier
+varDecl ::= type:t IDENT:i
+         {: RESULT = new VarDecl(t, i, loc(tleft, tright)); :}
+      ;
+
+// how does this interaction work?
+ type ::=  INT
+         {: RESULT = new Type(INT); :}
+      ;
+
+stmtList ::= stmt:s stmtList:l
+         {: RESULT = new StmtList(s, l, loc(sleft, sright)); :}
+      // | or empty which I'm unsure how to define
+      ;
+
+//a statement will become an return and handle a semicolon only for now (if/else/while/print will be added later as shown in documentation)
+stmt ::= RETURN expr:e SEMICOLON
+         {: RESULT = new Stmt(e, loc(eleft, eright)); :}
+      | varDecl:v EQUALS expr:e SEMICOLON
+         {: RESULT = new Stmt(v, e, loc(vleft, vright)); :}
+      // if
+      // if-else
+
+      //these are incomplete
+      | PRINT expr:e SEMICOLON
+         {: RESULT = new printStmt(e); :}
+      | LCURL stmtList:s RCURL
+         {: RESULT = new stmtBlock(s); :}
+      ;
+
+exprList ::= neExprList:n
+         {: RESULT = new ExprList(n, loc(nleft, nright)); :}
+         //or empty
+      ;
+
+neExprList ::= expr:e COMMA neExprList:n
+         {: RESULT = new NeExprList(e, n, loc(eleft, eright)); :}
+      | expr:e
+         {: RESULT = new Expr(e, loc(eleft, eright)); :}
+      ;
 
 //an expression will become a terminal and contains integers, parenthasis, and the unary minus
 expr ::= INTCONST:c
          {: RESULT = new ConstExpr(c, loc(cleft, cright)); :}
+      | IDENT:i
+         {: RESULT = i; :}
       |  binaryExpr:e
          {: RESULT = e; :}
       |  LPAREN expr:e RPAREN
@@ -65,18 +121,41 @@ expr ::= INTCONST:c
       | MINUS expr:e
          {: RESULT = new BinaryExpr(new ConstExpr(0, null), BinaryExpr.MINUS, e, loc(eleft, eright)); :}
          %prec U_MINUS
+      // | IDENT:i LPAREN exprList:e RPAREN
+      //    {: RESULT = call to identifier using expression list }
       ;
 
-//a statement will become an return and handle a semicolon only for now (if/else/while/print will be added later as shown in documentation)
-stmt ::= RETURN expr:e SEMICOLON
-         {: RESULT = new Stmt(e, loc(eleft, eright)); :}
-      ;
 
 //a binary expression will handle the current operators
 binaryExpr ::= expr:e1 PLUS expr:e2
-               {: RESULT = new BinaryExpr(e1, BinaryExpr.PLUS, e2, loc(e1left, e1right)); :}
-            |  expr:e1 MINUS expr:e2
-               {: RESULT = new BinaryExpr(e1, BinaryExpr.MINUS, e2, loc(e1left, e1right)); :}
-            |  expr:e1 TIMES expr:e2
-               {: RESULT = new BinaryExpr(e1, BinaryExpr.TIMES, e2, loc(e1left, e1right)); :}
-            ;
+         {: RESULT = new BinaryExpr(e1, BinaryExpr.PLUS, e2, loc(e1left, e1right)); :}
+      |  expr:e1 MINUS expr:e2
+         {: RESULT = new BinaryExpr(e1, BinaryExpr.MINUS, e2, loc(e1left, e1right)); :}
+      |  expr:e1 TIMES expr:e2
+         {: RESULT = new BinaryExpr(e1, BinaryExpr.TIMES, e2, loc(e1left, e1right)); :}
+      ;
+
+cond ::= expr:e1 LTE expr:e2
+         {: RESULT = new Cond(e1, Expr.LTE, e2, loc(e1left, e1right)); :}
+      |  expr:e1 GTE expr:e2
+         {: RESULT = new Cond(e1, Expr.GTE, e2, loc(e1left, e1right)); :}
+      |  expr:e1 EQ expr:e2
+         {: RESULT = new Cond(e1, Expr.EQ, e2, loc(e1left, e1right)); :}
+      |  expr:e1 NOTEQ expr:e2
+         {: RESULT = new Cond(e1, Expr.NOTEQ, e2, loc(e1left, e1right)); :}
+      |  expr:e1 LT expr:e2
+         {: RESULT = new Cond(e1, Expr.LT, e2, loc(e1left, e1right)); :}
+      |  expr:e1 GT expr:e2
+         {: RESULT = new Cond(e1, Expr.GT, e2, loc(e1left, e1right)); :}
+         //Below begin with multiple conditions
+      |  cond:c1 AND cond:c2
+         {: RESULT = new Cond(c1, Expr.AND, c2, loc(c1left, c1right)); :}
+      |  cond:c1 OR cond:c2
+         {: RESULT = new Cond(c1, Expr.OR, c2, loc(c1left, c1right)); :}
+         // not condition
+      |  NOT cond:c
+         {: RESULT = new Cond(Expr.NOT, c, loc(cleft, cright)); :}
+         // parentheses for precedence
+      |  LPAREN cond:c RPAREN
+         {: RESULT = new Cond(c , loc(cright, cright)); :}
+      ;
