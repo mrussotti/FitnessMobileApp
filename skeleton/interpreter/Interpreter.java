@@ -274,7 +274,7 @@ public class Interpreter {
                             fatalError("Var name taken", 0);
                         }
                         //not duplicate can add to scope
-                        currentScope.put(name, (String) evaluateExpr(stmt.getExpr(), currentScope, updateParScope));
+                        currentScope.put(name, evaluateExpr(stmt.getExpr(), currentScope, updateParScope).toString());
                     //handled delcaration, now handle return
                     }else if(stmt.getType() == 1){
                         Expr build = new ConstExpr((Long) evaluateExpr(stmt.getExpr(), currentScope, updateParScope), null); 
