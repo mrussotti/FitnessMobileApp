@@ -160,7 +160,6 @@ cond ::= expr:e1 LTE expr:e2
          // not condition
       |  NOT cond:c
          {: RESULT = new Cond(Cond.NOT, c, loc(cleft, cright)); :}
-         // parentheses for precedence
-      // |  LPAREN cond:c RPAREN
-      //    {: RESULT = new Cond(c , loc(cright, cright)); :}
+      |  LPAREN cond:c RPAREN
+         {: RESULT = c; :}
       ;
