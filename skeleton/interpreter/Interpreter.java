@@ -120,8 +120,29 @@ public class Interpreter {
         Stmt s;
         //we iterate until the list is empty
         while(l != null){
-
+            //take statement
+            s = executeStmt(l.getStmt(), scope, mainArgs);
+            //variable declaration
+            if(s.getType() ==  2){
+                String name = s.getVarDecl().getIdent();
+                //Don't allow duplicate var names
+                if(scope.containsKey(name)){
+                    fatalError("Var name taken", 0);
+                }
+                //must check parent scope as well
+                if(mainArgs.containsKey(name)){
+                    fatalError("Var name taken", 0);
+                }
+                //not duplicate can add to scope
+                scope.put(name, (String) evaluateExpr(s.getExpr(), scope, mainArgs));
+            //handled delcaration, now handle return
+            }else if(s.getType() == 1){
+                return evaluateExpr(s.getExpr(), scope, mainArgs);
+            }
+            //pull off stmt we worked with
+            l = l.getStmtList();
         }
+        return null;
     }
 
     //method to evaluate expressions, takes expression, needs maps for scopeing, 
@@ -149,6 +170,7 @@ public class Interpreter {
         } else {
             throw new RuntimeException("Unhandled Expr type");
         }
+        return null;
     }
 
     //method to handle condition evaluation
@@ -196,7 +218,7 @@ public class Interpreter {
 
 
     // handle executing the statement
-    Object executeStmt(Stmt s, Map<String, String> scope, Map<String, String> parScope){
+    Stmt executeStmt(Stmt s, Map<String, String> scope, Map<String, String> parScope){
         //handle different types of statements
         switch (s.getType()) {
             case 1:
@@ -220,20 +242,52 @@ public class Interpreter {
                 }else{
                     return executeStmt(s.getStmt2(), scope, parScope);
                 }
-                return s;
+
             case 5:
                 // Handle print statement
                 System.out.println(evaluateExpr(s.getExpr(), scope, parScope));
                 return s;
             case 6:
                 // Handle statement block
-                // update scope
-                Map<String, String> updParScope = new HashMap<String, String>(parScope);
-                return executeStmtList(s.getStmtList(), s.getStmt1(), l);
+                // update scope for the specific statement list
+                Map<String, String> updateParScope = new HashMap<String, String>(parScope);
+                //move current scope into the new parent scope
+                updateParScope.putAll(scope);
+                //now create current scope to add stuff to for the list
+                Map<String, String> currentScope = new HashMap<String, String>();
+                Stmt stmt;
+                StmtList l = s.getStmtList();
+                //now iterate through statement list
+                while(l != null){
+                    //take stmt to execute
+                    stmt = executeStmt(l.getStmt(), currentScope, updateParScope);
+                    //if we are doing a declaration
+                    if(stmt.getType() ==  2){
+                        String name = stmt.getVarDecl().getIdent();
+                        //Don't allow duplicate var names
+                        if(currentScope.containsKey(name)){
+                            fatalError("Var name taken", 0);
+                        }
+                        //must check parent scope as well
+                        if(updateParScope.containsKey(name)){
+                            fatalError("Var name taken", 0);
+                        }
+                        //not duplicate can add to scope
+                        currentScope.put(name, (String) evaluateExpr(stmt.getExpr(), currentScope, updateParScope));
+                    //handled delcaration, now handle return
+                    }else if(stmt.getType() == 1){
+                        Expr build = new ConstExpr((Long) evaluateExpr(stmt.getExpr(), currentScope, updateParScope), null); 
+                        Stmt out = new Stmt(Stmt.RETURN, build, null);
+                        return out;
+                    }
+                    //pulls off statement we worked with
+                    l = l.getStmtList();
+                }
+                return s;
 
             default:
                 // Handle default case
         }
-        return 0;
+        return s;
     }
 }
