@@ -132,9 +132,9 @@ public class Interpreter {
                 //must check parent scope as well
                 if(mainArgs.containsKey(name)){
                     fatalError("Var name taken", 0);
-                }
+                }else{
                 //not duplicate can add to scope
-                scope.put(name, (String) evaluateExpr(s.getExpr(), scope, mainArgs));
+                scope.put(name, (String) evaluateExpr(s.getExpr(), scope, mainArgs));}
             //handled delcaration, now handle return
             }else if(s.getType() == 1){
                 return evaluateExpr(s.getExpr(), scope, mainArgs);
@@ -271,9 +271,9 @@ public class Interpreter {
                         //must check parent scope as well
                         if(updateParScope.containsKey(name)){
                             fatalError("Var name taken", 0);
-                        }
+                        }else{
                         //not duplicate can add to scope
-                        currentScope.put(name, (String) evaluateExpr(stmt.getExpr(), currentScope, updateParScope));
+                        currentScope.put(name, (String) evaluateExpr(stmt.getExpr(), currentScope, updateParScope));}
                     //handled delcaration, now handle return
                     }else if(stmt.getType() == 1){
                         Expr build = new ConstExpr((Long) evaluateExpr(stmt.getExpr(), currentScope, updateParScope), null); 
