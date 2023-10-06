@@ -126,4 +126,47 @@ public class Interpreter {
         System.out.println(message);
         System.exit(processReturnCode);
 	}
+
+
+    //must execute a statement from a list of statements
+    Object executeStmtList(StmtList s, Stmt t, long l){
+        // when s is not null there are elements left, but when s is null there could still be a statement in t that we need to account for
+        if(s != null){
+            executeStmt(t, l);
+            // recursive call without the element we've executed
+            return executeStmtList(s.getStmtList(), s.getStmt(), l);
+        } else {
+            executeStmt(t, l);
+        }
+        return 0;
+    }
+
+    // handle executing the statement
+    Object executeStmt(Stmt s, long l){
+        //handle different types of statements
+        switch (s.getType()) {
+            case 1:
+                // Handle return statement
+                return evaluate(s.getExpr());
+            case 2:
+                // Handle equals statement for variable declaration
+                // want to store variables in a variable map where they're paired with the function they were created in for scoping
+                return null;
+            case 3:
+                // Handle if statement
+                break;
+            case 4:
+                // Handle else statement
+                break;
+            case 5:
+                // Handle print statement
+                break;
+            case 6:
+                // Handle statement block
+                break;
+            default:
+                // Handle default case
+        }
+        return 0;
+    }
 }

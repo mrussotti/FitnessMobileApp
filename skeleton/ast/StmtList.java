@@ -9,8 +9,6 @@ public class StmtList extends FuncDef {
 // the default color in Section 8.1) except function definition lists, formal declaration lists, expression lists, and
 // call expressions.
 
-
-
     //a variable declaration will have data type followed by a string beginning with a character as a variable name
     final Stmt stmt;
     final StmtList stmtList;
@@ -24,14 +22,24 @@ public class StmtList extends FuncDef {
 
     public StmtList(Stmt s, Location loc){
         super(loc);
-        this.stmt = null;
-        this.stmtList = s;
+        this.stmt = s;
+        this.stmtList = null;
     }
 
     public StmtList(Location loc){
         super(loc);
         this.stmt = null;
         this.stmtList = null;
+    }
+
+    //get for a stmtLists's list
+    public StmtList getStmtList() {
+        return stmtList;
+    }
+
+    //get for a stmtList's statement
+    public Stmt getStmt() {
+        return stmt;
     }
 
 

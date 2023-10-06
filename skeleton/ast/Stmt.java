@@ -79,6 +79,14 @@ public class Stmt extends StmtList {
         this.stmtList = s;
     }
 
+    public int getType(){
+        return type;
+    }
+
+    public int getVarDecl(){
+        return varDecl;
+    }
+
     //get expression from statement
     public Expr getExpr() {
         return expr;

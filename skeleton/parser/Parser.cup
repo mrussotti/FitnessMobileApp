@@ -128,8 +128,6 @@ expr ::= INTCONST:c
       | MINUS expr:e
          {: RESULT = new BinaryExpr(new ConstExpr(0, null), BinaryExpr.MINUS, e, loc(eleft, eright)); :}
          %prec U_MINUS
-      // | IDENT:i LPAREN exprList:e RPAREN
-      //    {: RESULT = call to identifier using expression list :}
       ;
 
 

@@ -22,5 +22,9 @@ public class VarDecl extends FuncDef {
         this.ident = ident;
     }
 
+    public int getIdent(){
+        return ident;
+    }
+
     
 }
