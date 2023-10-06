@@ -107,7 +107,7 @@ public class Interpreter {
     Object executeRoot(Program astRoot, long arg) {
         Map<String, String> mainArgs = new HashMap<String, String>();
         //get command line args from main
-        mainArgs.put(astRoot.getFuncDef().getVarDecl().getIdent(), String.valueOf(arg));
+        mainArgs.put(astRoot.getFuncDef().getVarDecl1().getIdent(), String.valueOf(arg));
         // WILL RUN FUNCTION
         return runFunc(astRoot.getFuncDef(), mainArgs);
     }
@@ -132,9 +132,9 @@ public class Interpreter {
                 //must check parent scope as well
                 if(mainArgs.containsKey(name)){
                     fatalError("Var name taken", 0);
-                }else{
+                }
                 //not duplicate can add to scope
-                scope.put(name, (String) evaluateExpr(s.getExpr(), scope, mainArgs));}
+                scope.put(name, (String) evaluateExpr(s.getExpr(), scope, mainArgs));
             //handled delcaration, now handle return
             }else if(s.getType() == 1){
                 return evaluateExpr(s.getExpr(), scope, mainArgs);
@@ -158,6 +158,8 @@ public class Interpreter {
             } else if(parScope.containsKey(((IDENT) expr).getIdent())){
                 return Long.parseLong(parScope.get(((IDENT) expr).getIdent()));
             // past this the identifier is not available in scope
+            } else {
+                throw new RuntimeException("var doesn't exist");
             }
         } else if (expr instanceof BinaryExpr) {
             BinaryExpr binaryExpr = (BinaryExpr)expr;
@@ -170,7 +172,6 @@ public class Interpreter {
         } else {
             throw new RuntimeException("Unhandled Expr type");
         }
-        return null;
     }
 
     //method to handle condition evaluation
@@ -206,6 +207,7 @@ public class Interpreter {
                 return ! evaluateCond(cond.getC1(), scope, parScope);
             default:
                 // Handle default case
+                fatalError("operator doesn't exist", 0);
         //Need to handle parentheses? Operator types for this don't seem to work
         }
         return false;
@@ -227,7 +229,6 @@ public class Interpreter {
             case 2:
                 // Handle equals statement for variable declaration
                 // want to store variables in a variable map where they're paired with the function they were created in for scoping
-                //Not required for this proj
                 return s;
             case 3:
                 // Handle if statement
@@ -271,9 +272,9 @@ public class Interpreter {
                         //must check parent scope as well
                         if(updateParScope.containsKey(name)){
                             fatalError("Var name taken", 0);
-                        }else{
+                        }
                         //not duplicate can add to scope
-                        currentScope.put(name, (String) evaluateExpr(stmt.getExpr(), currentScope, updateParScope));}
+                        currentScope.put(name, (String) evaluateExpr(stmt.getExpr(), currentScope, updateParScope));
                     //handled delcaration, now handle return
                     }else if(stmt.getType() == 1){
                         Expr build = new ConstExpr((Long) evaluateExpr(stmt.getExpr(), currentScope, updateParScope), null); 

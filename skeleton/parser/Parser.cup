@@ -70,8 +70,8 @@ program ::= funcDef:f
          ;
 
 //how is location decided for the expressions with multiple non-terminals?
-funcDef ::= varDecl:v LCURL stmtList:s RCURL
-         {: RESULT = new FuncDef(v, s, loc(vleft, vright)); :} 
+funcDef ::= varDecl:v LPAREN varDecl:v2 RPAREN LCURL stmtList:s RCURL
+         {: RESULT = new FuncDef(v, v2, s, loc(vleft, vright)); :} 
       ;
 
 //must figure out identifier

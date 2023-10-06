@@ -51,7 +51,7 @@ import interpreter.Interpreter;
 IntLiteral = 0 | [1-9][0-9]*
 // HERE
 // identifiers are strings that begin with a character
-Identifier = [a-zA-Z][a-zA-Z0-9_]*
+Identifier = [_a-zA-Z][_a-zA-Z0-9]*
 new_line = \r|\n|\r\n;
 
 white_space = {new_line} | [ \t\f]
