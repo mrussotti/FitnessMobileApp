@@ -23,7 +23,7 @@ public class Cond extends ASTNode {
         super(loc);
         this.e1 = e1;
         this.e2 = e2;
-        this.operator = operatorl;
+        this.operator = operator;
         this.c1 = null;
         this.c2 = null;
     }
@@ -32,7 +32,7 @@ public class Cond extends ASTNode {
         super(loc);
         this.e1 = null;
         this.e2 = null;
-        this.operator = operatorl;
+        this.operator = operator;
         this.c1 = c1;
         this.c2 = c2;
     }
@@ -41,7 +41,7 @@ public class Cond extends ASTNode {
         super(loc);
         this.e1 = null;
         this.e2 = null;
-        this.operator = operatorl;
+        this.operator = operator;
         this.c1 = c;
         this.c2 = null;
     }

@@ -1,10 +1,10 @@
 package ast;
 
-public class Ident extends Expr {
+public class IDENT extends Expr {
 
     final Object value;
 
-    public Ident(String value, Location loc) {
+    public IDENT(String value, Location loc) {
         super(loc);
         this.value = value;
     }

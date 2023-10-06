@@ -3,7 +3,7 @@ package ast;
 
 import java.io.PrintStream;
 
-public abstract class FuncDef extends Program {
+public class FuncDef extends Program {
 
 // A program uses any of the non-heap, non-mutation, non-concurrency functionality (i.e., the functionality in
 // the default color in Section 8.1) except function definition lists, formal declaration lists, expression lists, and
@@ -21,6 +21,10 @@ public abstract class FuncDef extends Program {
         this.varDecl = varDecl;
         this.stmtList = stmtList;
     }
-
+    public FuncDef(Location loc){
+        super(loc);
+        this.varDecl = null;
+        this.stmtList = null;
+    }
     
 }

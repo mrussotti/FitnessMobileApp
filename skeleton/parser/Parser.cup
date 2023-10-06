@@ -30,8 +30,8 @@ parser code {:
 //terminal symbols
 terminal PLUS, MINUS, LPAREN, RPAREN, LCURL, RCURL, PRINT, COMMA;
 terminal TIMES, U_MINUS, RETURN, SEMICOLON, EQUALS;
-terminal INTCONST;
-terminal IDENT;
+terminal Long INTCONST;
+terminal String IDENT;
 terminal INT, REF, _Q;
 terminal LTE, GTE, EQ, NOTEQ, LT, GT, AND, OR, NOT;
 terminal IF, ELSE;
@@ -48,6 +48,7 @@ non terminal NeExprList      neExprList;
 non terminal Expr            expr;
 non terminal BinaryExpr      binaryExpr;
 non terminal Cond            cond;
+non terminal IfStmt          ifStmt;
 
 //operator precedence
 precedence left PLUS, MINUS;
@@ -79,28 +80,29 @@ varDecl ::= type:t IDENT:i
       ;
 
 // how does this interaction work?
- type ::=  INT
-         {: RESULT = new Type(INT); :}
+ type ::=  INT:i
+         {: RESULT = new Type(Type.INT, loc(ileft, iright)); :}
       ;
 
 stmtList ::= stmt:s stmtList:l
          {: RESULT = new StmtList(s, l, loc(sleft, sright)); :}
-      // | or empty which I'm unsure how to define
+      |
+         {: RESULT = new StmtList(null, null, null); :}
       ;
 
 //a statement will become an return and handle a semicolon only for now (if/else/while/print will be added later as shown in documentation)
 stmt ::= RETURN expr:e SEMICOLON
-         {: RESULT = new Stmt(e, loc(eleft, eright)); :}
+         {: RESULT = new Stmt(Stmt.RETURN, e, loc(eleft, eright)); :}
       | varDecl:v EQUALS expr:e SEMICOLON
-         {: RESULT = new Stmt(v, e, loc(vleft, vright)); :}
+         {: RESULT = new Stmt(Stmt.EQUALS, v, e, loc(vleft, vright)); :}
       | IF LPAREN cond:c RPAREN stmt:s
-         {: RESULT = new IfStmt(c, s, loc(cleft, cright)); :}
+         {: RESULT = new Stmt(Stmt.IF, c, s, loc(cleft, cright)); :}
       |  IF LPAREN cond:c RPAREN stmt:s1 ELSE stmt:s2
-         {: RESULT = new IfElse(c, s1, s2, loc(cleft, cright)); :}
+         {: RESULT = new Stmt(Stmt.ELSE, c, s1, s2, loc(cleft, cright)); :}
       | PRINT expr:e SEMICOLON
-         {: RESULT = new printStmt(e); :}
+         {: RESULT = new Stmt(Stmt.PRINT, e, loc(eleft, eright)); :}
       | LCURL stmtList:s RCURL
-         {: RESULT = new stmtBlock(s); :}
+         {: RESULT = new Stmt(Stmt.STMTBLOCK, s, loc(sleft, sright)); :}
       ;
 
 // exprList ::= neExprList:n
@@ -118,17 +120,16 @@ stmt ::= RETURN expr:e SEMICOLON
 expr ::= INTCONST:c
          {: RESULT = new ConstExpr(c, loc(cleft, cright)); :}
       | IDENT:i
-         {: RESULT = i; :}
+         {: RESULT = new IDENT(i, loc(ileft, iright)); :}
       |  binaryExpr:e
          {: RESULT = e; :}
       |  LPAREN expr:e RPAREN
          {: RESULT = e; :}
-      // format given in CUP documentation 
       | MINUS expr:e
          {: RESULT = new BinaryExpr(new ConstExpr(0, null), BinaryExpr.MINUS, e, loc(eleft, eright)); :}
          %prec U_MINUS
       // | IDENT:i LPAREN exprList:e RPAREN
-      //    {: RESULT = call to identifier using expression list }
+      //    {: RESULT = call to identifier using expression list :}
       ;
 
 

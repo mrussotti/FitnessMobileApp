@@ -51,7 +51,7 @@ import interpreter.Interpreter;
 IntLiteral = 0 | [1-9][0-9]*
 // HERE
 // identifiers are strings that begin with a character
-Identifier = [a-z]
+Identifier = [a-zA-Z][a-zA-Z0-9_]*
 new_line = \r|\n|\r\n;
 
 white_space = {new_line} | [ \t\f]
@@ -93,15 +93,15 @@ white_space = {new_line} | [ \t\f]
 ">="              { return symbol(">=", GTE); }
 "=="              { return symbol("==", EQ); }
 "!="              { return symbol("!=", NOTEQ); }
-"<"              { return symbol("<", LT); }
-">"              { return symbol(">", GT); }
+"<"               { return symbol("<", LT); }
+">"               { return symbol(">", GT); }
 "&&"              { return symbol("&&", AND); }
 "||"              { return symbol("||", OR); }
-"!"              { return symbol("!", NOT); }
+"!"               { return symbol("!", NOT); }
 
 /* If/If-Else */
-/* How to determine if IF is followed by Else? */
-//"if ("
+"if"              { return symbol("if", IF); }
+"else"            { return symbol("else", ELSE); }
 
 /* comments */
 "/*" [^*] ~"*/" | "/*" "*"+ "/"
