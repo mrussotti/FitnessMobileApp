@@ -83,8 +83,20 @@ public class Stmt extends StmtList {
         return type;
     }
 
-    public int getVarDecl(){
+    public VarDecl getVarDecl(){
         return varDecl;
+    }
+
+    public Cond getCond(){
+        return cond;
+    }
+
+    public Stmt getStmt1(){
+        return stmt1;
+    }
+
+    public StmtList getStmtList(){
+        return stmtList;
     }
 
     //get expression from statement

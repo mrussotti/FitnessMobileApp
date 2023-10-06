@@ -45,4 +45,25 @@ public class Cond extends ASTNode {
         this.c1 = c;
         this.c2 = null;
     }
+
+    public int getOperator(){
+        return operator;
+    }
+
+    public Expr getE1(){
+        return e1;
+    }
+
+    public Expr getE2(){
+        return e2;
+    }
+
+    public Cond getC1(){
+        return c1;
+    }
+
+    public Cond getC2(){
+        return c2;
+    }
+
 }

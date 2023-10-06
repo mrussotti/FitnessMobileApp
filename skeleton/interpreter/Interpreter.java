@@ -5,6 +5,7 @@ import java.util.Random;
 
 import parser.ParserWrapper;
 import ast.*;
+import java.util.HashMap;
 
 public class Interpreter {
 
@@ -103,23 +104,78 @@ public class Interpreter {
 
     //must evaluate on expression, so need to cover the case that a program was constructed with a statement by getting the expression from the statement
     Object executeRoot(Program astRoot, long arg) {
+        Map<String, String> mainArgs = new Map<String, String>();
+        //get command line args from main
+        mainArgs.put(astRoot.getFuncDef().getVarDecl().getIdent(), String.valueOf(arg));
+        // WILL CALL EXECUTE FUNCTION
         return evaluate(astRoot.getExpr() != null ? astRoot.getExpr() : astRoot.getStmt().getExpr());
     }
+    
+    //method to execute functions
 
-    Object evaluate(Expr expr) {
-        if (expr instanceof ConstExpr) {
-            return ((ConstExpr)expr).getValue();
+    //method to evaluate expressions, takes expression, needs maps for scopeing, 
+    Object evaluateExpr(Expr expr, Map<String, String> scope, Map<String, String> parScope){
+        if(expr instanceof ConstExpr){
+            return((ConstExpr) expr).getValue();
+        // case for identifiers
+        } else if(expr instanceof IDENT){
+            // identifier is available in the current scope
+            if(scope.containsKey(((IDENT) expr).getIdent())){
+                return Long.parseLong(scope.get(((IDENT) expr).getIdent()));
+            // identifier is available in the parent scope
+            } else if(parScope.containsKey(((IDENT) expr).getIdent())){
+                return Long.parseLong(parScope.get(((IDENT) expr).getIdent()));
+            // past this the identifier is not available in scope
+            }
         } else if (expr instanceof BinaryExpr) {
             BinaryExpr binaryExpr = (BinaryExpr)expr;
             switch (binaryExpr.getOperator()) {
-                case BinaryExpr.PLUS: return (Long)evaluate(binaryExpr.getLeftExpr()) + (Long)evaluate(binaryExpr.getRightExpr());
-                case BinaryExpr.MINUS: return (Long)evaluate(binaryExpr.getLeftExpr()) - (Long)evaluate(binaryExpr.getRightExpr());
-                case BinaryExpr.TIMES: return (Long)evaluate(binaryExpr.getLeftExpr()) * (Long)evaluate(binaryExpr.getRightExpr()); //multiplication for proj1
+                case BinaryExpr.PLUS: return (Long)evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope) + (Long)evaluateExpr(binaryExpr.getRightExpr(), scope, parScope);
+                case BinaryExpr.MINUS: return (Long)evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope) - (Long)evaluateExpr(binaryExpr.getRightExpr(), scope, parScope);
+                case BinaryExpr.TIMES: return (Long)evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope) * (Long)evaluateExpr(binaryExpr.getRightExpr(), scope, parScope); //multiplication for proj1
                 default: throw new RuntimeException("Unhandled operator");
             }
         } else {
             throw new RuntimeException("Unhandled Expr type");
         }
+    }
+
+    //method to handle condition evaluation
+    // calls evaluate expression, passing forward scopeVars
+    public static boolean evaluateCond(Cond cond){
+        switch (cond.getOperator()) {
+            case 1:
+                // Handle less than or equal to
+                return Long.parseLong(evaluateExpr(cond.getE1())) <= Long.parseLong(evaluateExpr(cond.getE2()));
+            case 2:
+                // Handle greater than or equal to
+                return Long.parseLong(evaluateExpr(cond.getE1())) >= Long.parseLong(evaluateExpr(cond.getE2()));
+            case 3:
+                // Handle equals
+                return Long.parseLong(evaluateExpr(cond.getE1())) == Long.parseLong(evaluateExpr(cond.getE2()));
+            case 4:
+                // Handle not equals
+                return Long.parseLong(evaluateExpr(cond.getE1())) != Long.parseLong(evaluateExpr(cond.getE2()));
+            case 5:
+                // Handle less than
+                return Long.parseLong(evaluateExpr(cond.getE1())) < Long.parseLong(evaluateExpr(cond.getE2()));
+            case 6:
+                // Handle greater than
+                return Long.parseLong(evaluateExpr(cond.getE1())) > Long.parseLong(evaluateExpr(cond.getE2()));
+            case 7:
+                // Handle logical AND
+                return evaluateCond(cond.getC1()) && evaluateCond(cond.getC2());
+            case 8:
+                // Handle logical OR
+                return evaluateCond(cond.getC1()) || evaluateCond(cond.getC2());
+            case 9:
+                // Handle logical NOT
+                return ! evaluateCond(cond.getC1());
+            default:
+                // Handle default case
+        //Need to handle parentheses? Operator types for this don't seem to work
+        }
+        return false;
     }
 
 	public static void fatalError(String message, int processReturnCode) {
@@ -151,18 +207,26 @@ public class Interpreter {
             case 2:
                 // Handle equals statement for variable declaration
                 // want to store variables in a variable map where they're paired with the function they were created in for scoping
-                return null;
+                return s;
             case 3:
                 // Handle if statement
-                break;
+                if(evaluateCond(s.getCond())){
+                    return executeStmt(s.getStmt1(), l);
+                }
+                return s
             case 4:
                 // Handle else statement
+                //how is this different?
                 break;
             case 5:
                 // Handle print statement
+                // simply print s??
+                System.out.println(s);
                 break;
             case 6:
                 // Handle statement block
+                // s.getStmt() will be null in this case?
+                return executeStmtList(s.getStmtList(), s.getStmt1(), l);
                 break;
             default:
                 // Handle default case

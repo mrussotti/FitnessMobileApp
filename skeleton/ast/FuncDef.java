@@ -26,5 +26,9 @@ public class FuncDef extends Program {
         this.varDecl = null;
         this.stmtList = null;
     }
+
+    public VarDecl getVarDecl(){
+        return varDecl;
+    }
     
 }

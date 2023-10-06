@@ -2,14 +2,14 @@ package ast;
 
 public class IDENT extends Expr {
 
-    final Object value;
+    final String value;
 
     public IDENT(String value, Location loc) {
         super(loc);
         this.value = value;
     }
 
-    public Object getValue() {
+    public String getIdent() {
         return value;
     }
 
