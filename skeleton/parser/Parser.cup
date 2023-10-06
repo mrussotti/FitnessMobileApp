@@ -51,9 +51,9 @@ non terminal Cond            cond;
 non terminal IfStmt          ifStmt;
 
 //operator precedence
-precedence left PLUS, MINUS;
-precedence left TIMES;
 precedence left U_MINUS;
+precedence left TIMES;
+precedence left PLUS, MINUS;
 precedence left LTE, GTE, EQ, NOTEQ, LT, GT;
 precedence left NOT;
 precedence left AND;
