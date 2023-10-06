@@ -51,14 +51,15 @@ non terminal Cond            cond;
 non terminal IfStmt          ifStmt;
 
 //operator precedence
-precedence left U_MINUS;
-precedence left TIMES;
-precedence left PLUS, MINUS;
-precedence left LTE, GTE, EQ, NOTEQ, LT, GT;
-precedence left NOT;
-precedence left AND;
-precedence left OR;
 precedence left ELSE;
+precedence left OR;
+precedence left AND;
+precedence left NOT;
+precedence left LTE, GTE, EQ, NOTEQ, LT, GT;
+precedence left PLUS, MINUS;
+precedence left TIMES;
+precedence left U_MINUS;
+
 
 //start symbol
 start with program;
