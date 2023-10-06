@@ -140,18 +140,14 @@ binaryExpr ::= expr:e1 PLUS expr:e2
          {: RESULT = new BinaryExpr(e1, BinaryExpr.TIMES, e2, loc(e1left, e1right)); :}
       ;
 
-cond ::= expr:e1 LT EQUALS expr:e2
+cond ::= expr:e1 LTE expr:e2
          {: RESULT = new Cond(e1, Cond.LTE, e2, loc(e1left, e1right)); :}
-         %prec LTE
-      |  expr:e1 GT EQUALS expr:e2
+      |  expr:e1 GTE expr:e2
          {: RESULT = new Cond(e1, Cond.GTE, e2, loc(e1left, e1right)); :}
-         %prec GTE
-      |  expr:e1 EQUALS expr:e2
+      |  expr:e1 EQ expr:e2
          {: RESULT = new Cond(e1, Cond.EQ, e2, loc(e1left, e1right)); :}
-         %prec EQ
-      |  expr:e1 NOT EQUALS expr:e2
+      |  expr:e1 NOTEQ expr:e2
          {: RESULT = new Cond(e1, Cond.NOTEQ, e2, loc(e1left, e1right)); :}
-         %prec NOTEQ
       |  expr:e1 LT expr:e2
          {: RESULT = new Cond(e1, Cond.LT, e2, loc(e1left, e1right)); :}
       |  expr:e1 GT expr:e2
