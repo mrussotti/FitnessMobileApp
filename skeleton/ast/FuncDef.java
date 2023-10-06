@@ -30,5 +30,9 @@ public class FuncDef extends Program {
     public VarDecl getVarDecl(){
         return varDecl;
     }
+
+    public StmtList getStmtList(){
+        return stmtList;
+    }
     
 }

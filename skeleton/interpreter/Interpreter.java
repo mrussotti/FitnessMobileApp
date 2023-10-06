@@ -6,6 +6,7 @@ import java.util.Random;
 import parser.ParserWrapper;
 import ast.*;
 import java.util.HashMap;
+import java.util.Map;
 
 public class Interpreter {
 
@@ -104,14 +105,24 @@ public class Interpreter {
 
     //must evaluate on expression, so need to cover the case that a program was constructed with a statement by getting the expression from the statement
     Object executeRoot(Program astRoot, long arg) {
-        Map<String, String> mainArgs = new Map<String, String>();
+        Map<String, String> mainArgs = new HashMap<String, String>();
         //get command line args from main
         mainArgs.put(astRoot.getFuncDef().getVarDecl().getIdent(), String.valueOf(arg));
-        // WILL CALL EXECUTE FUNCTION
-        return evaluate(astRoot.getExpr() != null ? astRoot.getExpr() : astRoot.getStmt().getExpr());
+        // WILL RUN FUNCTION
+        return runFunc(astRoot.getFuncDef(), mainArgs);
     }
     
-    //method to execute functions
+    //method to execute functions, since we only have main in this proj we're fine to take only mainArgs
+    Object runFunc(FuncDef func, Map<String, String> mainArgs){
+        //for main the only things in scope so far are the main args, we will add to the below scope, but check args as well
+        Map<String, String> scope = new HashMap<String, String>();
+        StmtList l = func.getStmtList();
+        Stmt s;
+        //we iterate until the list is empty
+        while(l != null){
+
+        }
+    }
 
     //method to evaluate expressions, takes expression, needs maps for scopeing, 
     Object evaluateExpr(Expr expr, Map<String, String> scope, Map<String, String> parScope){
@@ -142,35 +153,35 @@ public class Interpreter {
 
     //method to handle condition evaluation
     // calls evaluate expression, passing forward scopeVars
-    public static boolean evaluateCond(Cond cond){
+    boolean evaluateCond(Cond cond, Map<String, String> scope, Map<String, String> parScope){
         switch (cond.getOperator()) {
             case 1:
                 // Handle less than or equal to
-                return Long.parseLong(evaluateExpr(cond.getE1())) <= Long.parseLong(evaluateExpr(cond.getE2()));
+                return (Long)evaluateExpr(cond.getE1(), scope, parScope) <= (Long)evaluateExpr(cond.getE2(), scope, parScope);
             case 2:
                 // Handle greater than or equal to
-                return Long.parseLong(evaluateExpr(cond.getE1())) >= Long.parseLong(evaluateExpr(cond.getE2()));
+                return (Long) evaluateExpr(cond.getE1(), scope, parScope) >= (Long) evaluateExpr(cond.getE2(), scope, parScope);
             case 3:
                 // Handle equals
-                return Long.parseLong(evaluateExpr(cond.getE1())) == Long.parseLong(evaluateExpr(cond.getE2()));
+                return (Long) evaluateExpr(cond.getE1(), scope, parScope) == (Long) evaluateExpr(cond.getE2(), scope, parScope);
             case 4:
                 // Handle not equals
-                return Long.parseLong(evaluateExpr(cond.getE1())) != Long.parseLong(evaluateExpr(cond.getE2()));
+                return (Long) evaluateExpr(cond.getE1(), scope, parScope) != (Long) evaluateExpr(cond.getE2(), scope, parScope);
             case 5:
                 // Handle less than
-                return Long.parseLong(evaluateExpr(cond.getE1())) < Long.parseLong(evaluateExpr(cond.getE2()));
+                return (Long) evaluateExpr(cond.getE1(), scope, parScope) < (Long) evaluateExpr(cond.getE2(), scope, parScope);
             case 6:
                 // Handle greater than
-                return Long.parseLong(evaluateExpr(cond.getE1())) > Long.parseLong(evaluateExpr(cond.getE2()));
+                return (Long) evaluateExpr(cond.getE1(), scope, parScope) > (Long) evaluateExpr(cond.getE2(), scope, parScope);
             case 7:
                 // Handle logical AND
-                return evaluateCond(cond.getC1()) && evaluateCond(cond.getC2());
+                return evaluateCond(cond.getC1(), scope, parScope) && evaluateCond(cond.getC2(), scope, parScope);
             case 8:
                 // Handle logical OR
-                return evaluateCond(cond.getC1()) || evaluateCond(cond.getC2());
+                return evaluateCond(cond.getC1(), scope, parScope) || evaluateCond(cond.getC2(), scope, parScope);
             case 9:
                 // Handle logical NOT
-                return ! evaluateCond(cond.getC1());
+                return ! evaluateCond(cond.getC1(), scope, parScope);
             default:
                 // Handle default case
         //Need to handle parentheses? Operator types for this don't seem to work
@@ -184,50 +195,42 @@ public class Interpreter {
 	}
 
 
-    //must execute a statement from a list of statements
-    Object executeStmtList(StmtList s, Stmt t, long l){
-        // when s is not null there are elements left, but when s is null there could still be a statement in t that we need to account for
-        if(s != null){
-            executeStmt(t, l);
-            // recursive call without the element we've executed
-            return executeStmtList(s.getStmtList(), s.getStmt(), l);
-        } else {
-            executeStmt(t, l);
-        }
-        return 0;
-    }
-
     // handle executing the statement
-    Object executeStmt(Stmt s, long l){
+    Object executeStmt(Stmt s, Map<String, String> scope, Map<String, String> parScope){
         //handle different types of statements
         switch (s.getType()) {
             case 1:
                 // Handle return statement
-                return evaluate(s.getExpr());
+                return s;
             case 2:
                 // Handle equals statement for variable declaration
                 // want to store variables in a variable map where they're paired with the function they were created in for scoping
+                //Not required for this proj
                 return s;
             case 3:
                 // Handle if statement
-                if(evaluateCond(s.getCond())){
-                    return executeStmt(s.getStmt1(), l);
+                if(evaluateCond(s.getCond(), scope, parScope)){
+                    return executeStmt(s.getStmt1(), scope, parScope);
                 }
-                return s
+                return s;
             case 4:
-                // Handle else statement
-                //how is this different?
-                break;
+                // Handle if-else
+                if(evaluateCond(s.getCond(), scope, parScope)){
+                    return executeStmt(s.getStmt1(), scope, parScope);
+                }else{
+                    return executeStmt(s.getStmt2(), scope, parScope);
+                }
+                return s;
             case 5:
                 // Handle print statement
-                // simply print s??
-                System.out.println(s);
-                break;
+                System.out.println(evaluateExpr(s.getExpr(), scope, parScope));
+                return s;
             case 6:
                 // Handle statement block
-                // s.getStmt() will be null in this case?
+                // update scope
+                Map<String, String> updParScope = new HashMap<String, String>(parScope);
                 return executeStmtList(s.getStmtList(), s.getStmt1(), l);
-                break;
+
             default:
                 // Handle default case
         }

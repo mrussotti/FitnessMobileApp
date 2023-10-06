@@ -95,6 +95,10 @@ public class Stmt extends StmtList {
         return stmt1;
     }
 
+    public Stmt getStmt2(){
+        return stmt2;
+    }
+
     public StmtList getStmtList(){
         return stmtList;
     }
