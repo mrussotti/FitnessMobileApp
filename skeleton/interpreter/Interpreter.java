@@ -134,7 +134,7 @@ public class Interpreter {
                     fatalError("Var name taken", 0);
                 }
                 //not duplicate can add to scope
-                scope.put(name, (String) evaluateExpr(s.getExpr(), scope, mainArgs));
+                scope.put(name, evaluateExpr(s.getExpr(), scope, mainArgs).toString());
             //handled delcaration, now handle return
             }else if(s.getType() == 1){
                 return evaluateExpr(s.getExpr(), scope, mainArgs);
