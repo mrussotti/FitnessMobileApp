@@ -87,7 +87,7 @@ varDecl ::= type:t IDENT:i
 stmtList ::= stmt:s stmtList:l
          {: RESULT = new StmtList(s, l, loc(sleft, sright)); :}
       |
-         {: RESULT = new StmtList(null, null, null); :}
+         {: RESULT = null; :}
       ;
 
 //a statement will become an return and handle a semicolon only for now (if/else/while/print will be added later as shown in documentation)
