@@ -186,7 +186,7 @@ public class Interpreter {
                 return (Long) evaluateExpr(cond.getE1(), scope, parScope) >= (Long) evaluateExpr(cond.getE2(), scope, parScope);
             case 3:
                 // Handle equals
-                return (Long) evaluateExpr(cond.getE1(), scope, parScope).equals((Long) evaluateExpr(cond.getE2(), scope, parScope));
+                return ((Long) evaluateExpr(cond.getE1(), scope, parScope)).equals((Long) evaluateExpr(cond.getE2(), scope, parScope));
             case 4:
                 // Handle not equals
                 return (Long) evaluateExpr(cond.getE1(), scope, parScope) != (Long) evaluateExpr(cond.getE2(), scope, parScope);
