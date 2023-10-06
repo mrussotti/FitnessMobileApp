@@ -107,7 +107,7 @@ public class Interpreter {
     Object executeRoot(Program astRoot, long arg) {
         Map<String, String> mainArgs = new HashMap<String, String>();
         //get command line args from main
-        mainArgs.put(astRoot.getFuncDef().getVarDecl1().getIdent(), String.valueOf(arg));
+        mainArgs.put(astRoot.getFuncDef().getVarDecl2().getIdent(), String.valueOf(arg));
         // WILL RUN FUNCTION
         return runFunc(astRoot.getFuncDef(), mainArgs);
     }
