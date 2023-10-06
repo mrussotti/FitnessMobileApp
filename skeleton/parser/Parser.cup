@@ -121,13 +121,13 @@ expr ::= INTCONST:c
          {: RESULT = new ConstExpr(c, loc(cleft, cright)); :}
       | IDENT:i
          {: RESULT = new IDENT(i, loc(ileft, iright)); :}
+      | MINUS expr:e
+         {: RESULT = new BinaryExpr(new ConstExpr(0, null), BinaryExpr.MINUS, e, loc(eleft, eright)); :}
+         %prec U_MINUS
       |  binaryExpr:e
          {: RESULT = e; :}
       |  LPAREN expr:e RPAREN
          {: RESULT = e; :}
-      | MINUS expr:e
-         {: RESULT = new BinaryExpr(new ConstExpr(0, null), BinaryExpr.MINUS, e, loc(eleft, eright)); :}
-         %prec U_MINUS
       ;
 
 
