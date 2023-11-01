@@ -85,10 +85,12 @@ public class Interpreter {
 
     final Program astRoot;
     final Random random;
+    HashMap<String, funcDef> funcDefMap;
 
     private Interpreter(Program astRoot) {
         this.astRoot = astRoot;
         this.random = new Random();
+        astRoot.getFuncDefList().fill(funcDefMap);
     }
 
     void initMemoryManager(String gcType, long heapBytes) {
@@ -106,22 +108,24 @@ public class Interpreter {
     //must evaluate on expression, so need to cover the case that a program was constructed with a statement by getting the expression from the statement
     Object executeRoot(Program astRoot, long arg) {
         Map<String, String> mainArgs = new HashMap<String, String>();
-        //get command line args from main
-        mainArgs.put(astRoot.getFuncDef().getVarDecl2().getIdent(), String.valueOf(arg));
+        //get command line args from main as Identifier, value
+        //REDUNDANT? can i simply put "main?"
+        mainArgs.put(funcDefMap.get("main").getVarDecl().getIdent(), String.valueOf(arg));
         // WILL RUN FUNCTION
-        return runFunc(astRoot.getFuncDef(), mainArgs);
+        return runFunc(funcDefMap.get("main"), mainArgs);
     }
     
+    //change this to take exprList for args rather than map?
     //method to execute functions, since we only have main in this proj we're fine to take only mainArgs
-    Object runFunc(FuncDef func, Map<String, String> mainArgs){
-        //for main the only things in scope so far are the main args, we will add to the below scope, but check args as well
+    Object runFunc(FuncDef func, Map<String, String> funcArgs){
+        //for functions the only things in scope so far are the args at this point, we will add to the below scope, but check args as well
         Map<String, String> scope = new HashMap<String, String>();
         StmtList l = func.getStmtList();
         Stmt s;
         //we iterate until the list is empty
         while(l != null){
             //take statement
-            s = executeStmt(l.getStmt(), scope, mainArgs);
+            s = executeStmt(l.getStmt(), scope, funcArgs);
             //variable declaration
             if(s.getType() ==  2){
                 String name = s.getVarDecl().getIdent();
@@ -130,14 +134,14 @@ public class Interpreter {
                     fatalError("Var name taken", 0);
                 }
                 //must check parent scope as well
-                if(mainArgs.containsKey(name)){
+                if(funcArgs.containsKey(name)){
                     fatalError("Var name taken", 0);
                 }
                 //not duplicate can add to scope
-                scope.put(name, evaluateExpr(s.getExpr(), scope, mainArgs).toString());
+                scope.put(name, evaluateExpr(s.getExpr(), scope, funcArgs).toString());
             //handled delcaration, now handle return
             }else if(s.getType() == 1){
-                return evaluateExpr(s.getExpr(), scope, mainArgs);
+                return evaluateExpr(s.getExpr(), scope, funcArgs);
             }
             //pull off stmt we worked with
             l = l.getStmtList();
@@ -169,7 +173,20 @@ public class Interpreter {
                 case BinaryExpr.TIMES: return (Long)evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope) * (Long)evaluateExpr(binaryExpr.getRightExpr(), scope, parScope); //multiplication for proj1
                 default: throw new RuntimeException("Unhandled operator");
             }
-        } else {
+        }
+        //calls appear here, but first we need to implement FuncDefList and change runFunc to accept args as exprList
+         else if(expr instanceof CallExpr){
+            CallExpr callExpr = (CallExpr)expr;
+            FuncDef funcDef = funcDefMap.get(callExpr.getIdent());
+            FormalDeclList formalDeclList= funcDef.getFormalDeclList();
+            Map<String, String> args = new HashMap<String, String>();
+            if(callExpr.getExprList()!= null && formalDeclList!=null){
+                //here there is at least one arg getting passed in and the fucntion will be expecting at least one arg
+                callExpr.getNeExprList().fillArgs(args, formalDeclList.getNeFormalDeclList(), scope);
+            }
+            return runFunc(funcDefMap.get(callExpr.getIdent()), args)
+        }
+         else {
             throw new RuntimeException("Unhandled Expr type");
         }
     }
@@ -243,7 +260,6 @@ public class Interpreter {
                 }else{
                     return executeStmt(s.getStmt2(), scope, parScope);
                 }
-
             case 5:
                 // Handle print statement
                 System.out.println(evaluateExpr(s.getExpr(), scope, parScope));
@@ -285,7 +301,6 @@ public class Interpreter {
                     l = l.getStmtList();
                 }
                 return s;
-
             default:
                 // Handle default case
         }

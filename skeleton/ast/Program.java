@@ -11,15 +11,16 @@ public class Program extends ASTNode {
 
 
     //a program will have a list of function definitions, but for this part of the project we need only one function Main
-    final FuncDef funcDef;
-    final Expr expr;
-    final Stmt stmt;
+    final FuncDefList funcDefList;
+
+    // final Expr expr;
+    // final Stmt stmt;
 
 
     //construct a program with a function definition
-    public Program(FuncDef funcDef, Location loc){
+    public Program(FuncDefList funcDefList, Location loc){
         super(loc);
-        this.funcDef = funcDef;
+        this.funcDefList = funcDefList;
         this.expr = null;
         this.stmt = null;
     }
@@ -31,8 +32,8 @@ public class Program extends ASTNode {
     }
 
     //get a program's function definition
-    public FuncDef getFuncDef(){
-        return funcDef;
+    public FuncDef getFuncDefList(){
+        return funcDefList;
     }
 
 
@@ -54,14 +55,14 @@ public class Program extends ASTNode {
     // }
 
     //get for a program's expression
-    public Expr getExpr() {
-        return expr;
-    }
+    // public Expr getExpr() {
+    //     return expr;
+    // }
 
-    //get for a program's statement
-    public Stmt getStmt() {
-        return stmt;
-    }
+    // //get for a program's statement
+    // public Stmt getStmt() {
+    //     return stmt;
+    // }
 
     // //print for the expr/stmt of a program
     // public void println(PrintStream ps) {

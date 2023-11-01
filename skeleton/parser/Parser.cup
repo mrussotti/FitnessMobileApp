@@ -38,9 +38,12 @@ terminal IF, ELSE;
 
 //non-terminal symbols
 non terminal Program         program;
+non terminal FuncDefList     funcDefList;
 non terminal FuncDef         funcDef;
 non terminal VarDecl         varDecl;
 non terminal Type            type;
+non terminal FormalDeclList  formalDeclList;
+non terminal NeFormalDeclList neFormalDeclList;
 non terminal StmtList        stmtList;
 non terminal Stmt            stmt;
 non terminal ExprList        exprList;
@@ -48,7 +51,6 @@ non terminal NeExprList      neExprList;
 non terminal Expr            expr;
 non terminal BinaryExpr      binaryExpr;
 non terminal Cond            cond;
-non terminal IfStmt          ifStmt;
 
 //operator precedence
 precedence left ELSE;
@@ -66,13 +68,19 @@ start with program;
 
 //beginning of grammar rules
 //program may become an expression or a statement
-program ::= funcDef:f
+program ::= funcDefList:f
             {: RESULT = new Program(f, loc(fleft, fright)); :}
          ;
 
+funcDefList ::= funcDef:f funcDefList:l
+            {: RESULT = new FuncDefList(f, l, loc(fleft, fright)); :}
+         |
+            {: RESULT = null; :}
+         ;
+
 //how is location decided for the expressions with multiple non-terminals?
-funcDef ::= varDecl:v LPAREN varDecl:v2 RPAREN LCURL stmtList:s RCURL
-         {: RESULT = new FuncDef(v, v2, s, loc(vleft, vright)); :} 
+funcDef ::= varDecl:v LPAREN formalDeclList:f RPAREN LCURL stmtList:s RCURL
+         {: RESULT = new FuncDef(v, f, s, loc(vleft, vright)); :} 
       ;
 
 //must figure out identifier
@@ -80,9 +88,26 @@ varDecl ::= type:t IDENT:i
          {: RESULT = new VarDecl(t, i, loc(tleft, tright)); :}
       ;
 
-// how does this interaction work?
- type ::=  INT:i
+type ::=  INT:i
          {: RESULT = new Type(Type.INT, loc(ileft, iright)); :}
+      ;
+
+      // | REF:r
+      //    {: RESULT = new Type(Type.REF, loc(rleft, rright)); :}
+      // | _Q:q
+      //    {: RESULT = new Type(Type.Q, loc(qleft, qright)); :}
+      // ;
+
+formalDeclList ::= neFormalDeclList:n
+         {: RESULT = new FormalDeclList(n, loc(nleft, nright)); :}
+      |
+         {: RESULT = null; :}
+      ;
+
+neFormalDeclList ::= varDecl:v COMMA neFormalDeclList:n
+         {: RESULT = new NeFormalDeclList(v, n, loc(vleft, vright)); :}
+      | varDecl:v
+         {: RESULT = new NeFormalDeclList(v, loc(vleft, vright)); :}
       ;
 
 stmtList ::= stmt:s stmtList:l
@@ -91,7 +116,6 @@ stmtList ::= stmt:s stmtList:l
          {: RESULT = null; :}
       ;
 
-//a statement will become an return and handle a semicolon only for now (if/else/while/print will be added later as shown in documentation)
 stmt ::= RETURN expr:e SEMICOLON
          {: RESULT = new Stmt(Stmt.RETURN, e, loc(eleft, eright)); :}
       | varDecl:v EQUALS expr:e SEMICOLON
@@ -106,16 +130,17 @@ stmt ::= RETURN expr:e SEMICOLON
          {: RESULT = new Stmt(Stmt.STMTBLOCK, s, loc(sleft, sright)); :}
       ;
 
-// exprList ::= neExprList:n
-//          {: RESULT = new ExprList(n, loc(nleft, nright)); :}
-//          //or empty
-//       ;
+exprList ::= neExprList:n
+         {: RESULT = new ExprList(n, loc(nleft, nright)); :}
+      |
+         {: RESULT = null; :}
+      ;
 
-// neExprList ::= expr:e COMMA neExprList:n
-//          {: RESULT = new NeExprList(e, n, loc(eleft, eright)); :}
-//       | expr:e
-//          {: RESULT = new Expr(e, loc(eleft, eright)); :}
-//       ;
+neExprList ::= expr:e COMMA neExprList:n
+         {: RESULT = new NeExprList(e, n, loc(eleft, eright)); :}
+      | expr:e
+         {: RESULT = new NeExprList(e, loc(eleft, eright)); :}
+      ;
 
 //an expression will become a terminal and contains integers, parenthasis, and the unary minus
 expr ::= INTCONST:c
@@ -125,6 +150,8 @@ expr ::= INTCONST:c
       | MINUS expr:e
          {: RESULT = new BinaryExpr(new ConstExpr(0, null), BinaryExpr.MINUS, e, loc(eleft, eright)); :}
          %prec U_MINUS
+      | IDENT:i LPAREN exprList:e RPAREN
+         {: RESULT = new CallExpr(i, e, loc(ileft, iright)):}
       |  binaryExpr:e
          {: RESULT = e; :}
       |  LPAREN expr:e RPAREN

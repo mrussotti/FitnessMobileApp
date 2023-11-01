@@ -1,4 +1,3 @@
-//<type> IDENT or mutable <type> IDENT
 package ast;
 
 import java.io.PrintStream;

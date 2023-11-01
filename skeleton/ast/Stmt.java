@@ -79,6 +79,17 @@ public class Stmt extends StmtList {
         this.stmtList = s;
     }
 
+    public Stmt(Location loc){
+        super(loc);
+        this.expr = null;
+        this.varDecl = null;
+        this.type = 0;
+        this.cond = null;
+        this.stmt1 = null;
+        this.stmt2 = null;
+        this.stmtList = null;
+    }
+
     public int getType(){
         return type;
     }

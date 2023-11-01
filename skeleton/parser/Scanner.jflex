@@ -66,7 +66,7 @@ white_space = {new_line} | [ \t\f]
 /* types */
 "int"             { return symbol("int", INT); }
 "Ref"             { return symbol("Ref", REF); }
-"Q"             { return symbol("Q", _Q); }
+"Q"               { return symbol("Q", _Q); }
 
 /* separators */
 "+"               { return symbol("+",  PLUS); }
@@ -89,10 +89,6 @@ white_space = {new_line} | [ \t\f]
 "print"           { return symbol("print", PRINT); }
 
 /* Compare */
-"<="              { return symbol("<=", LTE); }
-">="              { return symbol(">=", GTE); }
-"=="              { return symbol("==", EQ); }
-"!="              { return symbol("!=", NOTEQ); }
 "<"               { return symbol("<", LT); }
 ">"               { return symbol(">", GT); }
 "&&"              { return symbol("&&", AND); }

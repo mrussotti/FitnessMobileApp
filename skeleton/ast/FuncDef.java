@@ -12,30 +12,30 @@ public class FuncDef extends Program {
 
 
     //a function definition will have variable declarations followed by a list of statements
-    final VarDecl varDecl1;
-    final VarDecl varDecl2;
+    final VarDecl varDecl;
+    final FormalDeclList formalDeclList;
     final StmtList stmtList;
 
     //construct a program with an expression
-    public FuncDef(VarDecl varDecl1, VarDecl varDecl2, StmtList stmtList, Location loc) {
+    public FuncDef(VarDecl varDecl, FormalDeclList formalDeclList, StmtList stmtList, Location loc) {
         super(loc);
-        this.varDecl1 = varDecl1;
-        this.varDecl2 = varDecl2;
+        this.varDecl = varDecl;
+        this.formalDeclList = formalDeclList;
         this.stmtList = stmtList;
     }
     public FuncDef(Location loc){
         super(loc);
         this.varDecl1 = null;
-        this.varDecl2 = null;
+        this.formalDeclList = null;
         this.stmtList = null;
     }
 
-    public VarDecl getVarDecl1(){
-        return varDecl1;
+    public VarDecl getVarDecl(){
+        return varDecl;
     }
 
-    public VarDecl getVarDecl2(){
-        return varDecl2;
+    public VarDecl getFormalDeclList(){
+        return formalDeclList;
     }
 
     public StmtList getStmtList(){
