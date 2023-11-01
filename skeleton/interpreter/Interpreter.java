@@ -85,7 +85,7 @@ public class Interpreter {
 
     final Program astRoot;
     final Random random;
-    HashMap<String, funcDef> funcDefMap;
+    Map<String, FuncDef> funcDefMap = new HashMap<String, FuncDef>();
 
     private Interpreter(Program astRoot) {
         this.astRoot = astRoot;
@@ -179,16 +179,29 @@ public class Interpreter {
             CallExpr callExpr = (CallExpr)expr;
             FuncDef funcDef = funcDefMap.get(callExpr.getIdent());
             FormalDeclList formalDeclList= funcDef.getFormalDeclList();
+            ExprList exprList = callExpr.getExprList();
             Map<String, String> args = new HashMap<String, String>();
-            if(callExpr.getExprList()!= null && formalDeclList!=null){
+            if(exprList!= null && formalDeclList!=null){
                 //here there is at least one arg getting passed in and the fucntion will be expecting at least one arg
-                callExpr.getNeExprList().fillArgs(args, formalDeclList.getNeFormalDeclList(), scope);
+                fillArgs(args, formalDeclList.getNeFormalDeclList(), exprList.getNeExprList(), scope);
             }
-            return runFunc(funcDefMap.get(callExpr.getIdent()), args)
+            return runFunc(funcDefMap.get(callExpr.getIdent()), args);
         }
          else {
             throw new RuntimeException("Unhandled Expr type");
         }
+    }
+
+    void fillArgs(Map<String, String> args, NeFormalDeclList neFormalDeclList, NeExprList neExprList, Map<String, String> scope){
+        // get formal parameter variables and assign values from the exprList to those var names to pass into scope
+            args.put(neFormalDeclList.getVarDecl().getIdent(), evaluateExpr(neExprList.getExpr(), args, scope).toString());//I want to put this into the new scope
+            NeFormalDeclList nextFD = neFormalDeclList.getNeFormalDeclList();
+            NeExprList nextE = neExprList.getNeExprList();
+            if(nextE != null && nextFD !=null){
+                // the function can take more args
+                fillArgs(args, nextFD, nextE, scope);
+            }
+            //here args should be filled, however no error will be thrown for incorrect number of args.....
     }
 
     //method to handle condition evaluation

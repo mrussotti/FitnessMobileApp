@@ -21,18 +21,18 @@ public class Program extends ASTNode {
     public Program(FuncDefList funcDefList, Location loc){
         super(loc);
         this.funcDefList = funcDefList;
-        this.expr = null;
-        this.stmt = null;
+        // this.expr = null;
+        // this.stmt = null;
     }
     public Program(Location loc){
         super(loc);
-        this.funcDef = null;
-        this.expr = null;
-        this.stmt = null;
+        this.funcDefList = null;
+        // this.expr = null;
+        // this.stmt = null;
     }
 
     //get a program's function definition
-    public FuncDef getFuncDefList(){
+    public FuncDefList getFuncDefList(){
         return funcDefList;
     }
 

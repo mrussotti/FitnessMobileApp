@@ -1,5 +1,6 @@
 package ast;
-
+import java.util.HashMap;
+import java.util.Map;
 import java.io.PrintStream;
 
 public class FuncDefList extends Program {
@@ -24,12 +25,12 @@ public class FuncDefList extends Program {
         return funcDef;
     }
 
-    public FuncDefList getFuncDefList(){
-        return funcDefList;
-    }
+    // public FuncDefList getFuncDefList(){
+    //     return funcDefList;
+    // }
     
     //method for placing functions in the map
-    public void fill(HashMap<String, funcDef> funcDefMap){
+    public void fill(Map<String, FuncDef> funcDefMap){
         funcDefMap.put(funcDef.getVarDecl().getIdent(), funcDef);
         if(funcDefList != null){
             funcDefList.fill(funcDefMap);

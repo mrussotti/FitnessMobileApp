@@ -151,7 +151,7 @@ expr ::= INTCONST:c
          {: RESULT = new BinaryExpr(new ConstExpr(0, null), BinaryExpr.MINUS, e, loc(eleft, eright)); :}
          %prec U_MINUS
       | IDENT:i LPAREN exprList:e RPAREN
-         {: RESULT = new CallExpr(i, e, loc(ileft, iright)):}
+         {: RESULT = new CallExpr(i, e, loc(ileft, iright)); :}
       |  binaryExpr:e
          {: RESULT = e; :}
       |  LPAREN expr:e RPAREN

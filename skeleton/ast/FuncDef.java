@@ -25,7 +25,7 @@ public class FuncDef extends Program {
     }
     public FuncDef(Location loc){
         super(loc);
-        this.varDecl1 = null;
+        this.varDecl = null;
         this.formalDeclList = null;
         this.stmtList = null;
     }
@@ -34,7 +34,7 @@ public class FuncDef extends Program {
         return varDecl;
     }
 
-    public VarDecl getFormalDeclList(){
+    public FormalDeclList getFormalDeclList(){
         return formalDeclList;
     }
 
