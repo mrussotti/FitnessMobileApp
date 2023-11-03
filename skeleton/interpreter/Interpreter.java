@@ -201,8 +201,12 @@ public class Interpreter {
         //calls appear here, but first we need to implement FuncDefList and change runFunc to accept args as exprList
          else if(expr instanceof CallExpr){
             CallExpr callExpr = (CallExpr)expr;
-            // check here for if it is calling random()
+            System.out.println("calling: "+ callExpr.getIdent());
+            if(callExpr.getIdent().equals("randomInt")){
+                return random.nextInt(((Integer) evaluateExpr(callExpr.getExprList().getExpr(), scope, parScope)));
+            }
             FuncDef funcDef = funcDefMap.get(callExpr.getIdent());
+            
             FormalDeclList formalDeclList= funcDef.getFormalDeclList();
             ExprList exprList = callExpr.getExprList();
             //should make sure the above lists are the same length. will fail also if only one list is null
@@ -215,8 +219,9 @@ public class Interpreter {
             }
             Map<String, String> args = new HashMap<String, String>();
             //refactor this to look more like map fill in executeRoot
-            fillArgs(args, scope, formalDeclList.getNeFormalDeclList(), exprList.getNeExprList(), parScope);
-            
+            if(formalDeclList != null && exprList != null){
+                fillArgs(args, scope, formalDeclList.getNeFormalDeclList(), exprList.getNeExprList(), parScope);
+            }
             return runFunc(funcDef, args);
         }
          else {
