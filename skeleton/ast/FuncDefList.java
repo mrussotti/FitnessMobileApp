@@ -25,15 +25,8 @@ public class FuncDefList extends Program {
         return funcDef;
     }
 
-    // public FuncDefList getFuncDefList(){
-    //     return funcDefList;
-    // }
-    
-    //method for placing functions in the map
-    public void fill(Map<String, FuncDef> funcDefMap){
-        funcDefMap.put(funcDef.getVarDecl().getIdent(), funcDef);
-        if(funcDefList != null){
-            funcDefList.fill(funcDefMap);
-        }
+    public FuncDefList getNextFuncDef(){
+        return funcDefList;
     }
+    
 }

@@ -30,4 +30,11 @@ public class NeExprList extends ExprList {
         return neExprList;
     }
     
+    public int length(){
+        if(this.neExprList!=null){
+            return 1 + this.neExprList.length();
+        }else{
+            return 1;
+        }
+    }
 }

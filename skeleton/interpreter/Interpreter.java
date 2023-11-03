@@ -85,12 +85,12 @@ public class Interpreter {
 
     final Program astRoot;
     final Random random;
-    Map<String, FuncDef> funcDefMap = new HashMap<String, FuncDef>();
+    final Map<String, FuncDef> funcDefMap;
 
     private Interpreter(Program astRoot) {
         this.astRoot = astRoot;
         this.random = new Random();
-        astRoot.getFuncDefList().fill(funcDefMap);
+        this.funcDefMap = new HashMap<String, FuncDef>();
     }
 
     void initMemoryManager(String gcType, long heapBytes) {
@@ -107,16 +107,38 @@ public class Interpreter {
 
     //must evaluate on expression, so need to cover the case that a program was constructed with a statement by getting the expression from the statement
     Object executeRoot(Program astRoot, long arg) {
+        fillMap(astRoot.getFuncDefList());
         Map<String, String> mainArgs = new HashMap<String, String>();
-        //get command line args from main as Identifier, value
-        //REDUNDANT? can i simply put "main?"
-        mainArgs.put(funcDefMap.get("main").getVarDecl().getIdent(), String.valueOf(arg));
-        // WILL RUN FUNCTION
-        return runFunc(funcDefMap.get("main"), mainArgs);
+        FuncDef main = funcDefMap.get("main");
+        if(main != null){
+            //get command line args from main as Identifier, value
+            mainArgs.put(main.getFormalDeclList().getVarDecl().getIdent(), String.valueOf(arg));
+            // run main
+            return runFunc(main, mainArgs);
+        }else{
+            fatalError("no main method found", 0);
+        }
+        return null;
+    }
+
+
+    //method for placing functions in the map
+    Void fillMap(FuncDefList funcDefList){
+        if(funcDefList != null){
+            FuncDef funcDef = funcDefList.getFuncDef();
+            String funcName = funcDef.getVarDecl().getIdent();
+            if(!funcDefMap.containsKey(funcName)){
+                funcDefMap.put(funcName, funcDef);
+            } else {
+                fatalError("Duplicate function names found",0);
+            }
+            fillMap(funcDefList.getNextFuncDef());
+        }
+        return null;
     }
     
-    //change this to take exprList for args rather than map?
-    //method to execute functions, since we only have main in this proj we're fine to take only mainArgs
+    
+    //method to execute functions
     Object runFunc(FuncDef func, Map<String, String> funcArgs){
         //for functions the only things in scope so far are the args at this point, we will add to the below scope, but check args as well
         Map<String, String> scope = new HashMap<String, String>();
@@ -177,31 +199,39 @@ public class Interpreter {
         //calls appear here, but first we need to implement FuncDefList and change runFunc to accept args as exprList
          else if(expr instanceof CallExpr){
             CallExpr callExpr = (CallExpr)expr;
+            // check here for if it is calling random()
             FuncDef funcDef = funcDefMap.get(callExpr.getIdent());
             FormalDeclList formalDeclList= funcDef.getFormalDeclList();
             ExprList exprList = callExpr.getExprList();
-            Map<String, String> args = new HashMap<String, String>();
-            if(exprList!= null && formalDeclList!=null){
-                //here there is at least one arg getting passed in and the fucntion will be expecting at least one arg
-                fillArgs(args, formalDeclList.getNeFormalDeclList(), exprList.getNeExprList(), scope);
+            //should make sure the above lists are the same length. will fail also if only one list is null
+            if(formalDeclList != null && exprList != null){
+                if(formalDeclList.getNeFormalDeclList().length() != exprList.getNeExprList().length()){
+                    fatalError("Incorrect number of parameters passed to method: " + funcDef.getVarDecl().getIdent(), 0);
+                }
+            }else if((formalDeclList == null && exprList != null) || (formalDeclList != null && exprList == null)){
+                fatalError("Incorrect number of parameters passed to method: " + funcDef.getVarDecl().getIdent(), 0);
             }
-            return runFunc(funcDefMap.get(callExpr.getIdent()), args);
+            Map<String, String> args = new HashMap<String, String>();
+            //refactor this to look more like map fill in executeRoot
+            fillArgs(args, scope, formalDeclList.getNeFormalDeclList(), exprList.getNeExprList(), parScope);
+            
+            return runFunc(funcDef, args);
         }
          else {
             throw new RuntimeException("Unhandled Expr type");
         }
     }
 
-    void fillArgs(Map<String, String> args, NeFormalDeclList neFormalDeclList, NeExprList neExprList, Map<String, String> scope){
-        // get formal parameter variables and assign values from the exprList to those var names to pass into scope
-            args.put(neFormalDeclList.getVarDecl().getIdent(), evaluateExpr(neExprList.getExpr(), args, scope).toString());//I want to put this into the new scope
-            NeFormalDeclList nextFD = neFormalDeclList.getNeFormalDeclList();
-            NeExprList nextE = neExprList.getNeExprList();
-            if(nextE != null && nextFD !=null){
-                // the function can take more args
-                fillArgs(args, nextFD, nextE, scope);
-            }
-            //here args should be filled, however no error will be thrown for incorrect number of args.....
+    //method for placing args in the map
+    Void fillArgs(Map<String,String> funcArgs, Map<String,String> scopeArgs, NeFormalDeclList declList, NeExprList exprList, Map<String, String> parScope){
+        if(declList != null && exprList != null){
+            VarDecl varDecl = declList.getVarDecl();
+            Expr expr = exprList.getExpr();
+            funcArgs.put(varDecl.getIdent(), evaluateExpr(expr, scopeArgs, parScope).toString());
+            //step
+            fillArgs(funcArgs, scopeArgs, declList.getNeFormalDeclList(), exprList.getNeExprList(), parScope);
+        }
+        return null;
     }
 
     //method to handle condition evaluation

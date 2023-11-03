@@ -31,6 +31,12 @@ public class NeFormalDeclList extends FuncDef {
         return neFormalDeclList;
     }
 
-
+    public int length(){
+        if(this.neFormalDeclList!=null){
+            return 1 + this.neFormalDeclList.length();
+        }else{
+            return 1;
+        }
+    }
     
 }
