@@ -2,6 +2,7 @@ package interpreter;
 
 import java.io.*;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import parser.ParserWrapper;
 import ast.*;
@@ -201,9 +202,8 @@ public class Interpreter {
         //calls appear here, but first we need to implement FuncDefList and change runFunc to accept args as exprList
          else if(expr instanceof CallExpr){
             CallExpr callExpr = (CallExpr)expr;
-            System.out.println("calling: "+ callExpr.getIdent());
             if(callExpr.getIdent().equals("randomInt")){
-                return random.nextInt(((Integer) evaluateExpr(callExpr.getExprList().getExpr(), scope, parScope)));
+                return ThreadLocalRandom.current().nextLong(((Long) evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scope, parScope)));
             }
             FuncDef funcDef = funcDefMap.get(callExpr.getIdent());
             
