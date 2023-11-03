@@ -109,10 +109,11 @@ public class Interpreter {
     Object executeRoot(Program astRoot, long arg) {
         fillMap(astRoot.getFuncDefList());
         Map<String, String> mainArgs = new HashMap<String, String>();
-        FuncDef main = funcDefMap.get("main");
+        FuncDef main = null;
+        main = funcDefMap.get("main");
         if(main != null){
             //get command line args from main as Identifier, value
-            mainArgs.put(main.getFormalDeclList().getVarDecl().getIdent(), String.valueOf(arg));
+            mainArgs.put(main.getFormalDeclList().getNeFormalDeclList().getVarDecl().getIdent(), String.valueOf(arg));
             // run main
             return runFunc(main, mainArgs);
         }else{
@@ -127,6 +128,7 @@ public class Interpreter {
         if(funcDefList != null){
             FuncDef funcDef = funcDefList.getFuncDef();
             String funcName = funcDef.getVarDecl().getIdent();
+            System.out.println("filling: " + funcName);
             if(!funcDefMap.containsKey(funcName)){
                 funcDefMap.put(funcName, funcDef);
             } else {
