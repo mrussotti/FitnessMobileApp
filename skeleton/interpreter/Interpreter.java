@@ -108,10 +108,10 @@ public class Interpreter {
 
     //must evaluate on expression, so need to cover the case that a program was constructed with a statement by getting the expression from the statement
     Object executeRoot(Program astRoot, long arg) {
+        //builds into global map
         fillMap(astRoot.getFuncDefList());
         Map<String, String> mainArgs = new HashMap<String, String>();
-        FuncDef main = null;
-        main = funcDefMap.get("main");
+        FuncDef main = funcDefMap.get("main");
         if(main != null){
             //get command line args from main as Identifier, value
             mainArgs.put(main.getFormalDeclList().getNeFormalDeclList().getVarDecl().getIdent(), String.valueOf(arg));
@@ -124,7 +124,7 @@ public class Interpreter {
     }
 
 
-    //method for placing functions in the map
+    //method for placing functions in the global map
     Void fillMap(FuncDefList funcDefList){
         if(funcDefList != null){
             FuncDef funcDef = funcDefList.getFuncDef();
@@ -133,8 +133,9 @@ public class Interpreter {
             if(!funcDefMap.containsKey(funcName)){
                 funcDefMap.put(funcName, funcDef);
             } else {
-                fatalError("Duplicate function names found",0);
+                fatalError("Duplicate function names found", 0);
             }
+            //step
             fillMap(funcDefList.getNextFuncDef());
         }
         return null;
@@ -203,6 +204,7 @@ public class Interpreter {
          else if(expr instanceof CallExpr){
             CallExpr callExpr = (CallExpr)expr;
             if(callExpr.getIdent().equals("randomInt")){
+                //using ThreadLocalRandom to generate a long as Random's nextLong doesn't take parameters
                 return ThreadLocalRandom.current().nextLong(((Long) evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scope, parScope)));
             }
             FuncDef funcDef = funcDefMap.get(callExpr.getIdent());
@@ -218,8 +220,8 @@ public class Interpreter {
                 fatalError("Incorrect number of parameters passed to method: " + funcDef.getVarDecl().getIdent(), 0);
             }
             Map<String, String> args = new HashMap<String, String>();
-            //refactor this to look more like map fill in executeRoot
             if(formalDeclList != null && exprList != null){
+                // only runs if there are args to fill, will runFunc handle empty map ok?
                 fillArgs(args, scope, formalDeclList.getNeFormalDeclList(), exprList.getNeExprList(), parScope);
             }
             return runFunc(funcDef, args);
