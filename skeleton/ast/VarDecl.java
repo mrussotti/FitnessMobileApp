@@ -13,12 +13,21 @@ public class VarDecl extends FuncDef {
     //a variable declaration will have data type followed by a string beginning with a character as a variable name
     final Type type;
     final String ident;
+    final boolean mutable;
 
     //construct a program with an expression
     public VarDecl(Type type, String ident, Location loc) {
         super(loc);
         this.type = type;
         this.ident = ident;
+        this.mutable = false;
+    }
+
+    public VarDecl(Type type, String ident, boolean mutable, Location loc) {
+        super(loc);
+        this.type = type;
+        this.ident = ident;
+        this.mutable = mutable;
     }
 
     public String getIdent(){

@@ -27,6 +27,7 @@ public class Stmt extends StmtList {
     final StmtList stmtList;
     final int type;
     final String ident;
+    final ExprList exprList;
 
     public Stmt(int type, VarDecl v, Expr expr, Location loc){
         super(loc);
@@ -38,6 +39,7 @@ public class Stmt extends StmtList {
         this.stmt2 = null;
         this.stmtList = null;
         this.ident = null;
+        this.exprList = null;
     }
     //both returns and prints
     public Stmt(int type, Expr expr, Location loc){
@@ -50,6 +52,7 @@ public class Stmt extends StmtList {
         this.stmt2 = null;
         this.stmtList = null;
         this.ident = null;
+        this.exprList = null;
     }
 
     public Stmt(int type, Cond c, Stmt stmt, Location loc){
@@ -62,6 +65,7 @@ public class Stmt extends StmtList {
         this.stmt2 = null;
         this.stmtList = null;
         this.ident = null;
+        this.exprList = null;
     }
 
     public Stmt(int type, Cond c, Stmt stmt1, Stmt stmt2, Location loc){
@@ -74,6 +78,7 @@ public class Stmt extends StmtList {
         this.stmt2 = stmt2;
         this.stmtList = null;
         this.ident = null;
+        this.exprList = null;
     }
 
     public Stmt(int type, StmtList s, Location loc){
@@ -86,6 +91,7 @@ public class Stmt extends StmtList {
         this.stmt2 = null;
         this.stmtList = s;
         this.ident = null;
+        this.exprList = null;
     }
 
     public Stmt(int type, String ident, Expr expr, Location loc){
@@ -98,6 +104,20 @@ public class Stmt extends StmtList {
         this.stmt2 = null;
         this.stmtList = null;
         this.ident = ident;
+        this.exprList = null;
+    }
+
+    public Stmt(int type, String ident, ExprList exprList, Location loc){
+        super(loc);
+        this.expr = null;
+        this.varDecl = null;
+        this.type = type;
+        this.cond = null;
+        this.stmt1 = null;
+        this.stmt2 = null;
+        this.stmtList = null;
+        this.ident = ident;
+        this.exprList = exprList;
     }
 
     public Stmt(Location loc){
@@ -110,6 +130,7 @@ public class Stmt extends StmtList {
         this.stmt2 = null;
         this.stmtList = null;
         this.ident = null;
+        this.exprList = null;
     }
 
     public int getType(){
@@ -140,7 +161,14 @@ public class Stmt extends StmtList {
     public Expr getExpr() {
         return expr;
     }
+    
+    public ExprList getExprList(){
+        return exprList;
+    }
 
+    public String getIdent(){
+        return ident;
+    }
     //give the espression of the statement to a print stream COPIED FROM Program.java
     public void println(PrintStream ps){
         ps.println(expr);

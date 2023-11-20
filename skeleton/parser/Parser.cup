@@ -34,7 +34,7 @@ terminal Long INTCONST;
 terminal String IDENT;
 terminal INT, REF, _Q;
 terminal LTE, GTE, EQ, NOTEQ, LT, GT, AND, OR, NOT;
-terminal IF, ELSE, WHILE, MUTABLE;
+terminal IF, ELSE, WHILE, MUTABLE, NIL;
 
 //non-terminal symbols
 non terminal Program         program;
@@ -58,6 +58,7 @@ precedence left OR;
 precedence left AND;
 precedence left NOT;
 precedence left LTE, GTE, EQ, NOTEQ, LT, GT;
+precedence left DOT;
 precedence left PLUS, MINUS;
 precedence left TIMES;
 precedence left U_MINUS;
@@ -149,8 +150,8 @@ neExprList ::= expr:e COMMA neExprList:n
       ;
 
 //an expression will become a terminal and contains integers, parenthasis, and the unary minus
-expr ::= NIL:n
-         {: RESULT = nil; :}
+expr ::= NIL
+         {: RESULT = null; :}
       | INTCONST:c
          {: RESULT = new ConstExpr(c, loc(cleft, cright)); :}
       | IDENT:i
@@ -177,7 +178,7 @@ binaryExpr ::= expr:e1 PLUS expr:e2
       |  expr:e1 TIMES expr:e2
          {: RESULT = new BinaryExpr(e1, BinaryExpr.TIMES, e2, loc(e1left, e1right)); :}
       | expr:e1 DOT expr:e2
-         {: RESULT = new BindaryExpr(e1, BinaryExpr.DOT, e2, loc(e1left, e1right)); :}
+         {: RESULT = new BinaryExpr(e1, BinaryExpr.DOT, e2, loc(e1left, e1right)); :}
       ;
 
 cond ::= expr:e1 LTE expr:e2

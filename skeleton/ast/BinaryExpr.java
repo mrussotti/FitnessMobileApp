@@ -43,6 +43,7 @@ public class BinaryExpr extends Expr {
             case PLUS:  s = "+"; break;
             case MINUS: s = "-"; break;
             case TIMES: s = "*"; break; //multiplication for proj 1
+            case DOT: s = "."; break;
         }
         return "(" + expr1 + " " + s + " " + expr2 + ")";
     }

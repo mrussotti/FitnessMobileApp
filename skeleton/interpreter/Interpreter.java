@@ -197,6 +197,7 @@ public class Interpreter {
                 case BinaryExpr.PLUS: return (Long)evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope) + (Long)evaluateExpr(binaryExpr.getRightExpr(), scope, parScope);
                 case BinaryExpr.MINUS: return (Long)evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope) - (Long)evaluateExpr(binaryExpr.getRightExpr(), scope, parScope);
                 case BinaryExpr.TIMES: return (Long)evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope) * (Long)evaluateExpr(binaryExpr.getRightExpr(), scope, parScope); //multiplication for proj1
+                // case BindaryExpr.DOT: return new Ref
                 default: throw new RuntimeException("Unhandled operator");
             }
         }
@@ -206,6 +207,24 @@ public class Interpreter {
             if(callExpr.getIdent().equals("randomInt")){
                 //using ThreadLocalRandom to generate a long as Random's nextLong doesn't take parameters
                 return ThreadLocalRandom.current().nextLong(((Long) evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scope, parScope)));
+            }
+            if(callExpr.getIdent().equals("left")){
+                // return left child of Ref
+            }
+            if(callExpr.getIdent().equals("right")){
+                // return right child of Ref
+            }
+            if(callExpr.getIdent().equals("isAtom")){
+                // return 1 if Q  is a nil Ref or an int, 0 otherwise
+            }
+            if(callExpr.getIdent().equals("isNil")){
+                // return 1 if Q is nil, 0 otherwise
+            }
+            if(callExpr.getIdent().equals("setLeft")){
+                // set left field of the Ref r to the Q value
+            }
+            if(callExpr.getIdent().equals("setRight")){
+                // set right field of the Ref r to the Q value
             }
             FuncDef funcDef = funcDefMap.get(callExpr.getIdent());
             
@@ -225,6 +244,19 @@ public class Interpreter {
                 fillArgs(args, scope, formalDeclList.getNeFormalDeclList(), exprList.getNeExprList(), parScope);
             }
             return runFunc(funcDef, args);
+        } else if(expr instanceof TypeCast){
+            TypeCast typeCast = (TypeCast) expr;
+            //what type are we casting from
+            switch(typeCast.getCastExpr().getType()){
+                case 1:
+                    return (Long) evaluateExpr(typeCast.getCastExpr(), scope, parScope);
+                case 2:
+                    return null;
+                case 3:
+                    return null;
+                default: throw new RuntimeException("unknown type");
+
+            }
         }
          else {
             throw new RuntimeException("Unhandled Expr type");
@@ -353,6 +385,53 @@ public class Interpreter {
                     l = l.getStmtList();
                 }
                 return s;
+            case 7:
+                //assignment
+                String ident = s.getIdent();
+                //types?
+                String value = evaluateExpr(s.getExpr(), scope, parScope).toString();
+                scope.replace(ident, value);
+                return s;
+            case 8:
+                //while
+                boolean bool = evaluateCond(s.getCond(), scope, parScope);
+                while(bool){
+                    bool = evaluateCond(s.getCond(), scope, parScope);
+                    executeStmt(s.getStmt1(), scope, parScope);
+                }
+                return s;
+            case 9:
+                //Call
+                FuncDef funcDef = funcDefMap.get(s.getIdent());
+            
+                FormalDeclList formalDeclList= funcDef.getFormalDeclList();
+                ExprList exprList = s.getExprList();
+                //should make sure the above lists are the same length. will fail also if only one list is null
+                if(formalDeclList != null && exprList != null){
+                    if(formalDeclList.getNeFormalDeclList().length() != exprList.getNeExprList().length()){
+                      fatalError("Incorrect number of parameters passed to method: " + funcDef.getVarDecl().getIdent(), 0);
+                    }
+                }else if((formalDeclList == null && exprList != null) || (formalDeclList != null && exprList == null)){
+                    fatalError("Incorrect number of parameters passed to method: " + funcDef.getVarDecl().getIdent(), 0);
+                }
+                Map<String, String> args = new HashMap<String, String>();
+                if(formalDeclList != null && exprList != null){
+                    // only runs if there are args to fill, will runFunc handle empty map ok?
+                    fillArgs(args, scope, formalDeclList.getNeFormalDeclList(), exprList.getNeExprList(), parScope);
+                }
+                runFunc(funcDef, args);
+                return s;
+
+
+
+
+
+
+                // ExprList exprList = s.getExprList();
+                // //how to construct outside of parser?
+                // CallExpr call = new CallExpr(i, exprList, loc(sleft, sright));
+                // evaluateExpr(call, scope, parScope);
+                // return s;
             default:
                 // Handle default case
         }
