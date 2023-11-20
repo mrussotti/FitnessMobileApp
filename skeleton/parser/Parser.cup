@@ -28,13 +28,13 @@ parser code {:
 :};
 
 //terminal symbols
-terminal PLUS, MINUS, LPAREN, RPAREN, LCURL, RCURL, PRINT, COMMA;
+terminal DOT, PLUS, MINUS, LPAREN, RPAREN, LCURL, RCURL, PRINT, COMMA;
 terminal TIMES, U_MINUS, RETURN, SEMICOLON, EQUALS;
 terminal Long INTCONST;
 terminal String IDENT;
 terminal INT, REF, _Q;
 terminal LTE, GTE, EQ, NOTEQ, LT, GT, AND, OR, NOT;
-terminal IF, ELSE;
+terminal IF, ELSE, WHILE, MUTABLE;
 
 //non-terminal symbols
 non terminal Program         program;
@@ -86,17 +86,17 @@ funcDef ::= varDecl:v LPAREN formalDeclList:f RPAREN LCURL stmtList:s RCURL
 //must figure out identifier
 varDecl ::= type:t IDENT:i
          {: RESULT = new VarDecl(t, i, loc(tleft, tright)); :}
+      | MUTABLE type:t IDENT:i
+         {: RESULT = new VarDecl(t, i, true, loc(tleft, tright)); :}
       ;
 
 type ::=  INT:i
          {: RESULT = new Type(Type.INT, loc(ileft, iright)); :}
+      | REF:r
+         {: RESULT = new Type(Type.REF, loc(rleft, rright)); :}
+      | _Q:q
+         {: RESULT = new Type(Type.Q, loc(qleft, qright)); :}
       ;
-
-      // | REF:r
-      //    {: RESULT = new Type(Type.REF, loc(rleft, rright)); :}
-      // | _Q:q
-      //    {: RESULT = new Type(Type.Q, loc(qleft, qright)); :}
-      // ;
 
 formalDeclList ::= neFormalDeclList:n
          {: RESULT = new FormalDeclList(n, loc(nleft, nright)); :}
@@ -120,10 +120,16 @@ stmt ::= RETURN expr:e SEMICOLON
          {: RESULT = new Stmt(Stmt.RETURN, e, loc(eleft, eright)); :}
       | varDecl:v EQUALS expr:e SEMICOLON
          {: RESULT = new Stmt(Stmt.EQUALS, v, e, loc(vleft, vright)); :}
+      | IDENT:i EQUALS expr:e SEMICOLON
+         {: RESULT = new Stmt(Stmt.ASSIGN, i, e, loc(eleft, eright)); :}
       | IF LPAREN cond:c RPAREN stmt:s
          {: RESULT = new Stmt(Stmt.IF, c, s, loc(cleft, cright)); :}
       |  IF LPAREN cond:c RPAREN stmt:s1 ELSE stmt:s2
          {: RESULT = new Stmt(Stmt.ELSE, c, s1, s2, loc(cleft, cright)); :}
+      | WHILE LPAREN cond:c RPAREN stmt:s
+         {: RESULT = new Stmt(Stmt.WHILE, c, s, loc(cleft, cright)); :}
+      | IDENT:i LPAREN exprList:e RPAREN SEMICOLON
+         {: RESULT = new Stmt(Stmt.CALL, i, e, loc(eleft, eright)); :}
       | PRINT expr:e SEMICOLON
          {: RESULT = new Stmt(Stmt.PRINT, e, loc(eleft, eright)); :}
       | LCURL stmtList:s RCURL
@@ -143,13 +149,17 @@ neExprList ::= expr:e COMMA neExprList:n
       ;
 
 //an expression will become a terminal and contains integers, parenthasis, and the unary minus
-expr ::= INTCONST:c
+expr ::= NIL:n
+         {: RESULT = nil; :}
+      | INTCONST:c
          {: RESULT = new ConstExpr(c, loc(cleft, cright)); :}
       | IDENT:i
          {: RESULT = new IDENT(i, loc(ileft, iright)); :}
       | MINUS expr:e
          {: RESULT = new BinaryExpr(new ConstExpr(0, null), BinaryExpr.MINUS, e, loc(eleft, eright)); :}
          %prec U_MINUS
+      | LPAREN type:t RPAREN expr:e
+         {: RESULT = new TypeCast(t, e, loc(eleft, eright)); :}
       | IDENT:i LPAREN exprList:e RPAREN
          {: RESULT = new CallExpr(i, e, loc(ileft, iright)); :}
       |  binaryExpr:e
@@ -166,6 +176,8 @@ binaryExpr ::= expr:e1 PLUS expr:e2
          {: RESULT = new BinaryExpr(e1, BinaryExpr.MINUS, e2, loc(e1left, e1right)); :}
       |  expr:e1 TIMES expr:e2
          {: RESULT = new BinaryExpr(e1, BinaryExpr.TIMES, e2, loc(e1left, e1right)); :}
+      | expr:e1 DOT expr:e2
+         {: RESULT = new BindaryExpr(e1, BinaryExpr.DOT, e2, loc(e1left, e1right)); :}
       ;
 
 cond ::= expr:e1 LTE expr:e2

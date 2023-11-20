@@ -23,14 +23,14 @@ public class Type extends ASTNode {
         this.type = type;
     }
 
-    // public Type(Ref type, Location loc) {
-    //     super(loc);
-    //     this.type = type;
-    // }
+    public Type(Ref type, Location loc) {
+        super(loc);
+        this.type = type;
+    }
 
-    // public Type(Q type, Location loc) {
-    //     super(loc);
-    //     this.type = type;
-    // }
+    public Type(Q type, Location loc) {
+        super(loc);
+        this.type = type;
+    }
     
 }

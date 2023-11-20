@@ -11,6 +11,9 @@ public class Stmt extends StmtList {
     public static final int ELSE = 4;
     public static final int PRINT = 5;
     public static final int STMTBLOCK = 6;
+    public static final int ASSIGN = 7;
+    public static final int WHILE = 8;
+    public static final int CALL = 9;
     //must implement if and if-else, and return(?) and <stmtList>
 
     //statements have an expression
@@ -23,6 +26,7 @@ public class Stmt extends StmtList {
     // for Statement Block we need to hold a StmtList
     final StmtList stmtList;
     final int type;
+    final String ident;
 
     public Stmt(int type, VarDecl v, Expr expr, Location loc){
         super(loc);
@@ -33,6 +37,7 @@ public class Stmt extends StmtList {
         this.stmt1 = null;
         this.stmt2 = null;
         this.stmtList = null;
+        this.ident = null;
     }
     //both returns and prints
     public Stmt(int type, Expr expr, Location loc){
@@ -44,6 +49,7 @@ public class Stmt extends StmtList {
         this.stmt1 = null;
         this.stmt2 = null;
         this.stmtList = null;
+        this.ident = null;
     }
 
     public Stmt(int type, Cond c, Stmt stmt, Location loc){
@@ -55,6 +61,7 @@ public class Stmt extends StmtList {
         this.stmt1 = stmt;
         this.stmt2 = null;
         this.stmtList = null;
+        this.ident = null;
     }
 
     public Stmt(int type, Cond c, Stmt stmt1, Stmt stmt2, Location loc){
@@ -66,6 +73,7 @@ public class Stmt extends StmtList {
         this.stmt1 = stmt1;
         this.stmt2 = stmt2;
         this.stmtList = null;
+        this.ident = null;
     }
 
     public Stmt(int type, StmtList s, Location loc){
@@ -77,6 +85,19 @@ public class Stmt extends StmtList {
         this.stmt1 = null;
         this.stmt2 = null;
         this.stmtList = s;
+        this.ident = null;
+    }
+
+    public Stmt(int type, String ident, Expr expr, Location loc){
+        super(loc);
+        this.expr = expr;
+        this.varDecl = null;
+        this.type = type;
+        this.cond = null;
+        this.stmt1 = null;
+        this.stmt2 = null;
+        this.stmtList = null;
+        this.ident = ident;
     }
 
     public Stmt(Location loc){
@@ -88,6 +109,7 @@ public class Stmt extends StmtList {
         this.stmt1 = null;
         this.stmt2 = null;
         this.stmtList = null;
+        this.ident = null;
     }
 
     public int getType(){

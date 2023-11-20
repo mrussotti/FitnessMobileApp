@@ -69,6 +69,7 @@ white_space = {new_line} | [ \t\f]
 "Q"               { return symbol("Q", _Q); }
 
 /* separators */
+"."               { return symbol(".", DOT); }
 "+"               { return symbol("+",  PLUS); }
 "-"               { return symbol("-",  MINUS); }
 "("               { return symbol("(",  LPAREN); }
