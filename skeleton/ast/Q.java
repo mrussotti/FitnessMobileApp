@@ -6,12 +6,16 @@ public class Q extends Type {
     final Ref heap;
 
     public Q(int value) {
-        super(loc);
         this.value = value;
         this.heap = null;
     }
 
-    public String getIdent() {
+    public Q(Ref heap){
+        this.value = null;
+        this.heap = heap;
+    }
+
+    public String getInt() {
         return value;
     }
 

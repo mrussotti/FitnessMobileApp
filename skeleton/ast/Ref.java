@@ -4,9 +4,9 @@ public class Ref extends Type {
     final Ref left;
     final Ref right;
 
-    public Ref(Ref left, Ref right) {
-        this.left = left;
-        this.right = right;
+    public Ref( long address) {
+        this.left = null;
+        this.right = null;
     }
 
     public String getLeft() {
@@ -15,6 +15,14 @@ public class Ref extends Type {
     
     public String getRight(){
         return right;
+    }
+
+    public void setLeft(Q left){
+        this.left = left;
+    }
+
+    public void setRight(Q right){
+        this.right = right;
     }
 
     @Override

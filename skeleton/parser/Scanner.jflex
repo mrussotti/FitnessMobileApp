@@ -67,6 +67,7 @@ white_space = {new_line} | [ \t\f]
 "int"             { return symbol("int", INT); }
 "Ref"             { return symbol("Ref", REF); }
 "Q"               { return symbol("Q", _Q); }
+"mutable"         { return symbol("mutable", MUTABLE); }
 
 /* separators */
 "."               { return symbol(".", DOT); }
@@ -103,6 +104,9 @@ white_space = {new_line} | [ \t\f]
 /* If/If-Else */
 "if"              { return symbol("if", IF); }
 "else"            { return symbol("else", ELSE); }
+
+/* While */
+"while"           { return symbol("while", WHILE); }
 
 /* comments */
 "/*" [^*] ~"*/" | "/*" "*"+ "/"

@@ -196,7 +196,13 @@ public class Interpreter {
                 case BinaryExpr.PLUS: return (Long)evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope) + (Long)evaluateExpr(binaryExpr.getRightExpr(), scope, parScope);
                 case BinaryExpr.MINUS: return (Long)evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope) - (Long)evaluateExpr(binaryExpr.getRightExpr(), scope, parScope);
                 case BinaryExpr.TIMES: return (Long)evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope) * (Long)evaluateExpr(binaryExpr.getRightExpr(), scope, parScope); //multiplication for proj1
-                case BindaryExpr.DOT: return new Ref()
+                case BindaryExpr.DOT: 
+                    long address = getNextAvailableAddr();
+                    initObjectAt(address);
+                    Ref ref = new Ref(address);
+                    ref.setLeft(left);
+                    ref.setRight(right);
+                    return ref;
                 default: throw new RuntimeException("Unhandled operator");
             }
         }
@@ -405,36 +411,36 @@ public class Interpreter {
                 return s;
             case 9:
                 //Call
-                FuncDef funcDef = funcDefMap.get(s.getIdent());
+                // FuncDef funcDef = funcDefMap.get(s.getIdent());
             
-                FormalDeclList formalDeclList= funcDef.getFormalDeclList();
-                ExprList exprList = s.getExprList();
-                //should make sure the above lists are the same length. will fail also if only one list is null
-                if(formalDeclList != null && exprList != null){
-                    if(formalDeclList.getNeFormalDeclList().length() != exprList.getNeExprList().length()){
-                      fatalError("Incorrect number of parameters passed to method: " + funcDef.getVarDecl().getIdent(), 0);
-                    }
-                }else if((formalDeclList == null && exprList != null) || (formalDeclList != null && exprList == null)){
-                    fatalError("Incorrect number of parameters passed to method: " + funcDef.getVarDecl().getIdent(), 0);
-                }
-                Map<String, String> args = new HashMap<String, String>();
-                if(formalDeclList != null && exprList != null){
-                    // only runs if there are args to fill, will runFunc handle empty map ok?
-                    fillArgs(args, scope, formalDeclList.getNeFormalDeclList(), exprList.getNeExprList(), parScope);
-                }
-                runFunc(funcDef, args);
-                return s;
-
-
-
-
-
-
+                // FormalDeclList formalDeclList= funcDef.getFormalDeclList();
                 // ExprList exprList = s.getExprList();
-                // //how to construct outside of parser?
-                // CallExpr call = new CallExpr(i, exprList, loc(sleft, sright));
-                // evaluateExpr(call, scope, parScope);
+                // //should make sure the above lists are the same length. will fail also if only one list is null
+                // if(formalDeclList != null && exprList != null){
+                //     if(formalDeclList.getNeFormalDeclList().length() != exprList.getNeExprList().length()){
+                //       fatalError("Incorrect number of parameters passed to method: " + funcDef.getVarDecl().getIdent(), 0);
+                //     }
+                // }else if((formalDeclList == null && exprList != null) || (formalDeclList != null && exprList == null)){
+                //     fatalError("Incorrect number of parameters passed to method: " + funcDef.getVarDecl().getIdent(), 0);
+                // }
+                // Map<String, String> args = new HashMap<String, String>();
+                // if(formalDeclList != null && exprList != null){
+                //     // only runs if there are args to fill, will runFunc handle empty map ok?
+                //     fillArgs(args, scope, formalDeclList.getNeFormalDeclList(), exprList.getNeExprList(), parScope);
+                // }
+                // runFunc(funcDef, args);
                 // return s;
+
+
+
+
+
+
+                ExprList exprList = s.getExprList();
+                //how to construct outside of parser?
+                CallExpr call = new CallExpr(i, exprList, null);
+                evaluateExpr(call, scope, parScope);
+                return s;
             default:
                 // Handle default case
         }

@@ -23,11 +23,11 @@ public class VarDecl extends FuncDef {
         this.mutable = false;
     }
 
-    public VarDecl(Type type, String ident, boolean mutable, Location loc) {
+    public VarDecl(Type type, String ident, boolean mutable, Location loc){
         super(loc);
         this.type = type;
         this.ident = ident;
-        this.mutable = mutable;
+        this.mutable = true;
     }
 
     public String getIdent(){
