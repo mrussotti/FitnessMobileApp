@@ -20,11 +20,21 @@ public class Q {
         this.heap = null;
     }
 
-    public INT getValue() {
+    public INT getINT() {
         return value;
     }
 
     public Ref getRef(){
         return heap;
+    }
+
+    @Override
+    public String toString(){
+        if(value == null){
+            return heap.toString();
+        }else if(heap == null){
+            return value.toString();
+        }
+        return "nil";
     }
 }

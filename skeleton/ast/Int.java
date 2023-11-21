@@ -8,8 +8,13 @@ public class INT extends Q {
         this.value = value;
     }
 
-    public int getInt() {
+    public Long getValue() {
         return value;
+    }
+
+    @Override
+    public String toString(){
+        return value.toString();
     }
 
 }

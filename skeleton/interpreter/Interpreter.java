@@ -163,7 +163,7 @@ public class Interpreter {
                     fatalError("Var name taken", 0);
                 }
                 //not duplicate can add to scope
-                scope.put(name, new Q(evaluateExpr(s.getExpr(), scope, funcArgs).getValue()));
+                scope.put(name, evaluateExpr(s.getExpr(), scope, funcArgs));
             //handled delcaration, now handle return
             }else if(s.getType() == 1){
                 return evaluateExpr(s.getExpr(), scope, funcArgs);
@@ -182,10 +182,10 @@ public class Interpreter {
         } else if(expr instanceof IDENT){
             // identifier is available in the current scope
             if(scope.containsKey(((IDENT) expr).getIdent())){
-                return Long.parseLong(scope.get(((IDENT) expr).getIdent()));
+                return scope.get(((IDENT) expr).getIdent());
             // identifier is available in the parent scope
             } else if(parScope.containsKey(((IDENT) expr).getIdent())){
-                return Long.parseLong(parScope.get(((IDENT) expr).getIdent()));
+                return parScope.get(((IDENT) expr).getIdent());
             // past this the identifier is not available in scope
             } else {
                 throw new RuntimeException("var doesn't exist");
@@ -193,9 +193,9 @@ public class Interpreter {
         } else if (expr instanceof BinaryExpr) {
             BinaryExpr binaryExpr = (BinaryExpr)expr;
             switch (binaryExpr.getOperator()) {
-                case BinaryExpr.PLUS: return new Q(evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope).getValue().value + evaluateExpr(binaryExpr.getRightExpr(), scope, parScope).getValue().value);
-                case BinaryExpr.MINUS: return new Q(evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope).getValue().value - evaluateExpr(binaryExpr.getRightExpr(), scope, parScope).getValue().value);
-                case BinaryExpr.TIMES: return new Q(evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope).getValue().value * evaluateExpr(binaryExpr.getRightExpr(), scope, parScope).getValue().value); //multiplication for proj1
+                case BinaryExpr.PLUS: return new Q(evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope).getINT().value + evaluateExpr(binaryExpr.getRightExpr(), scope, parScope).getINT().value);
+                case BinaryExpr.MINUS: return new Q(evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope).getINT().value - evaluateExpr(binaryExpr.getRightExpr(), scope, parScope).getINT().value);
+                case BinaryExpr.TIMES: return new Q(evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope).getINT().value * evaluateExpr(binaryExpr.getRightExpr(), scope, parScope).getINT().value); //multiplication for proj1
                 case BinaryExpr.DOT: return new Q(new Ref(evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope), evaluateExpr(binaryExpr.getRightExpr(), scope, parScope)));
                     
                 default: throw new RuntimeException("Unhandled operator");
@@ -207,7 +207,7 @@ public class Interpreter {
             Expr temp = callExpr.getExprList().getNeExprList().getExpr();
             if(callExpr.getIdent().equals("randomInt")){
                 //using ThreadLocalRandom to generate a long as Random's nextLong doesn't take parameters
-                return new Q(ThreadLocalRandom.current().nextLong((evaluateExpr(temp, scope, parScope).getValue())));
+                return new Q(ThreadLocalRandom.current().nextLong((evaluateExpr(temp, scope, parScope).getINT().getValue())));
             }
             if(callExpr.getIdent().equals("left")){
                 // return left child of Ref
@@ -254,10 +254,10 @@ public class Interpreter {
                     return evaluateExpr(typeCast.getCastExpr(), scope, parScope);
                 case 2:
                     //From Ref to Q
-                    return evaluateExpr(typeCast.getCastExpr(), scope, parScope);;
+                    return evaluateExpr(typeCast.getCastExpr(), scope, parScope);
                 case 3:
                     if(typeCast.getCastType().getType() == 1){
-                        return new Int(evaluateExpr(typeCast.getCastExpr(), scope, parScope).getValue());
+                        return new INT(evaluateExpr(typeCast.getCastExpr(), scope, parScope).getINT().getValue());
                     }else if(typeCast.getCastType().getType() == 2){
                         return new Ref(evaluateExpr(typeCast.getCastExpr(), scope, parScope).getRef().getLeft(), evaluateExpr(typeCast.getCastExpr(), scope, parScope).getRef().getRight());
                         
@@ -290,22 +290,22 @@ public class Interpreter {
         switch (cond.getOperator()) {
             case 1:
                 // Handle less than or equal to
-                return evaluateExpr(cond.getE1(), scope, parScope).getValue().value <= evaluateExpr(cond.getE2(), scope, parScope).getValue().value;
+                return evaluateExpr(cond.getE1(), scope, parScope).getINT().value <= evaluateExpr(cond.getE2(), scope, parScope).getINT().value;
             case 2:
                 // Handle greater than or equal to
-                return  evaluateExpr(cond.getE1(), scope, parScope).getValue().value >=  evaluateExpr(cond.getE2(), scope, parScope).getValue().value;
+                return  evaluateExpr(cond.getE1(), scope, parScope).getINT().value >=  evaluateExpr(cond.getE2(), scope, parScope).getINT().value;
             case 3:
                 // Handle equals
-                return ( evaluateExpr(cond.getE1(), scope, parScope).getValue().value).equals( evaluateExpr(cond.getE2(), scope, parScope).getValue().value);
+                return ( evaluateExpr(cond.getE1(), scope, parScope).getINT().value).equals( evaluateExpr(cond.getE2(), scope, parScope).getINT().value);
             case 4:
                 // Handle not equals
-                return  evaluateExpr(cond.getE1(), scope, parScope).getValue().value !=  evaluateExpr(cond.getE2(), scope, parScope).getValue().value;
+                return  evaluateExpr(cond.getE1(), scope, parScope).getINT().value !=  evaluateExpr(cond.getE2(), scope, parScope).getINT().value;
             case 5:
                 // Handle less than
-                return  evaluateExpr(cond.getE1(), scope, parScope).getValue().value <  evaluateExpr(cond.getE2(), scope, parScope).getValue().value;
+                return  evaluateExpr(cond.getE1(), scope, parScope).getINT().value <  evaluateExpr(cond.getE2(), scope, parScope).getINT().value;
             case 6:
                 // Handle greater than
-                return  evaluateExpr(cond.getE1(), scope, parScope).getValue().value >  evaluateExpr(cond.getE2(), scope, parScope).getValue().value;
+                return  evaluateExpr(cond.getE1(), scope, parScope).getINT().value >  evaluateExpr(cond.getE2(), scope, parScope).getINT().value;
             case 7:
                 // Handle logical AND
                 return evaluateCond(cond.getC1(), scope, parScope) && evaluateCond(cond.getC2(), scope, parScope);
@@ -386,7 +386,7 @@ public class Interpreter {
                         currentScope.put(name, evaluateExpr(stmt.getExpr(), currentScope, updateParScope));
                     //handled delcaration, now handle return
                     }else if(stmt.getType() == 1){
-                        Expr build = new ConstExpr(evaluateExpr(stmt.getExpr(), currentScope, updateParScope).getValue(), null); 
+                        Expr build = new ConstExpr(evaluateExpr(stmt.getExpr(), currentScope, updateParScope).getINT().getValue(), null); 
                         Stmt out = new Stmt(Stmt.RETURN, build, null);
                         return out;
                     }
