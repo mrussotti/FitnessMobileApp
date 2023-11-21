@@ -1,13 +1,12 @@
 package ast;
 
-public class Int extends Q {
+public class INT extends Q {
 
-    final int value;
+    public Long value;
 
-    public Int(int value) {
+    public INT(Long value) {
         this.value = value;
     }
-
 
     public int getInt() {
         return value;

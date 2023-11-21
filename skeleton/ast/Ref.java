@@ -1,8 +1,8 @@
 package ast;
 
 public class Ref extends Q {
-    final Q left;
-    final Q right;
+    public Q left;
+    public Q right;
 
     public Ref(Q left, Q right) {
         this.left = left;

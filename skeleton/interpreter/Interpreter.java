@@ -109,11 +109,11 @@ public class Interpreter {
     Object executeRoot(Program astRoot, long arg) {
         //builds into global map
         fillMap(astRoot.getFuncDefList());
-        Map<String, String> mainArgs = new HashMap<String, String>();
+        Map<String, Q> mainArgs = new HashMap<String, Q>();
         FuncDef main = funcDefMap.get("main");
         if(main != null){
             //get command line args from main as Identifier, value
-            mainArgs.put(main.getFormalDeclList().getNeFormalDeclList().getVarDecl().getIdent(), String.valueOf(arg));
+            mainArgs.put(main.getFormalDeclList().getNeFormalDeclList().getVarDecl().getIdent(), new Q(arg));
             // run main
             return runFunc(main, mainArgs);
         }else{
@@ -142,9 +142,9 @@ public class Interpreter {
     
     
     //method to execute functions
-    Object runFunc(FuncDef func, Map<String, String> funcArgs){
+    Q runFunc(FuncDef func, Map<String, Q> funcArgs){
         //for functions the only things in scope so far are the args at this point, we will add to the below scope, but check args as well
-        Map<String, String> scope = new HashMap<String, String>();
+        Map<String, Q> scope = new HashMap<String, Q>();
         StmtList l = func.getStmtList();
         Stmt s;
         //we iterate until the list is empty
@@ -163,7 +163,7 @@ public class Interpreter {
                     fatalError("Var name taken", 0);
                 }
                 //not duplicate can add to scope
-                scope.put(name, evaluateExpr(s.getExpr(), scope, funcArgs).toString());
+                scope.put(name, new Q(evaluateExpr(s.getExpr(), scope, funcArgs).getValue()));
             //handled delcaration, now handle return
             }else if(s.getType() == 1){
                 return evaluateExpr(s.getExpr(), scope, funcArgs);
@@ -175,7 +175,7 @@ public class Interpreter {
     }
 
     //method to evaluate expressions, takes expression, needs maps for scopeing, 
-    Object evaluateExpr(Expr expr, Map<String, String> scope, Map<String, String> parScope){
+    Q evaluateExpr(Expr expr, Map<String, Q> scope, Map<String, Q> parScope){
         if(expr instanceof ConstExpr){
             return((ConstExpr) expr).getValue();
         // case for identifiers
@@ -193,10 +193,10 @@ public class Interpreter {
         } else if (expr instanceof BinaryExpr) {
             BinaryExpr binaryExpr = (BinaryExpr)expr;
             switch (binaryExpr.getOperator()) {
-                case BinaryExpr.PLUS: return (Long)evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope) + (Long)evaluateExpr(binaryExpr.getRightExpr(), scope, parScope);
-                case BinaryExpr.MINUS: return (Long)evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope) - (Long)evaluateExpr(binaryExpr.getRightExpr(), scope, parScope);
-                case BinaryExpr.TIMES: return (Long)evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope) * (Long)evaluateExpr(binaryExpr.getRightExpr(), scope, parScope); //multiplication for proj1
-                //case BindaryExpr.DOT: 
+                case BinaryExpr.PLUS: return new Q(evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope).getValue() + evaluateExpr(binaryExpr.getRightExpr(), scope, parScope).getValue());
+                case BinaryExpr.MINUS: return new Q(evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope).getValue() - evaluateExpr(binaryExpr.getRightExpr(), scope, parScope).getValue());
+                case BinaryExpr.TIMES: return new Q(evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope).getValue() * evaluateExpr(binaryExpr.getRightExpr(), scope, parScope).getValue()); //multiplication for proj1
+                case BinaryExpr.DOT: return new Q(new Ref(evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope), evaluateExpr(binaryExpr.getRightExpr(), scope, parScope)));
                     
                 default: throw new RuntimeException("Unhandled operator");
             }
@@ -207,7 +207,7 @@ public class Interpreter {
             Expr temp = callExpr.getExprList().getNeExprList().getExpr();
             if(callExpr.getIdent().equals("randomInt")){
                 //using ThreadLocalRandom to generate a long as Random's nextLong doesn't take parameters
-                return ThreadLocalRandom.current().nextLong(((Long) evaluateExpr(temp, scope, parScope)));
+                return new Q(ThreadLocalRandom.current().nextLong((evaluateExpr(temp, scope, parScope).getValue())));
             }
             if(callExpr.getIdent().equals("left")){
                 // return left child of Ref
@@ -239,7 +239,7 @@ public class Interpreter {
             }else if((formalDeclList == null && exprList != null) || (formalDeclList != null && exprList == null)){
                 fatalError("Incorrect number of parameters passed to method: " + funcDef.getVarDecl().getIdent(), 0);
             }
-            Map<String, String> args = new HashMap<String, String>();
+            Map<String, Q> args = new HashMap<String, Q>();
             if(formalDeclList != null && exprList != null){
                 // only runs if there are args to fill, will runFunc handle empty map ok?
                 fillArgs(args, scope, formalDeclList.getNeFormalDeclList(), exprList.getNeExprList(), parScope);
@@ -250,10 +250,18 @@ public class Interpreter {
             //what type are we casting from
             switch(typeCast.getCastExpr().getType()){
                 case 1:
-                    return (Long) evaluateExpr(typeCast.getCastExpr(), scope, parScope);
+                    //From Int to Q
+                    return evaluateExpr(typeCast.getCastExpr(), scope, parScope);
                 case 2:
-                    return null;
+                    //From Ref to Q
+                    return evaluateExpr(typeCast.getCastExpr(), scope, parScope);;
                 case 3:
+                    if(typeCast.getCastType().getType() == 1){
+                        return new Int(evaluateExpr(typeCast.getCastExpr(), scope, parScope).getValue());
+                    }else if(typeCast.getCastType().getType() == 2){
+                        return new Ref(evaluateExpr(typeCast.getCastExpr(), scope, parScope).getRef().getLeft(), evaluateExpr(typeCast.getCastExpr(), scope, parScope).getRef().getRight());
+                        
+                    }
                     return null;
                 default: throw new RuntimeException("unknown type");
 
@@ -265,11 +273,11 @@ public class Interpreter {
     }
 
     //method for placing args in the map
-    Void fillArgs(Map<String,String> funcArgs, Map<String,String> scopeArgs, NeFormalDeclList declList, NeExprList exprList, Map<String, String> parScope){
+    Void fillArgs(Map<String, Q> funcArgs, Map<String, Q> scopeArgs, NeFormalDeclList declList, NeExprList exprList, Map<String, Q> parScope){
         if(declList != null && exprList != null){
             VarDecl varDecl = declList.getVarDecl();
             Expr expr = exprList.getExpr();
-            funcArgs.put(varDecl.getIdent(), evaluateExpr(expr, scopeArgs, parScope).toString());
+            funcArgs.put(varDecl.getIdent(), evaluateExpr(expr, scopeArgs, parScope));
             //step
             fillArgs(funcArgs, scopeArgs, declList.getNeFormalDeclList(), exprList.getNeExprList(), parScope);
         }
@@ -278,26 +286,26 @@ public class Interpreter {
 
     //method to handle condition evaluation
     // calls evaluate expression, passing forward scopeVars
-    boolean evaluateCond(Cond cond, Map<String, String> scope, Map<String, String> parScope){
+    boolean evaluateCond(Cond cond, Map<String, Q> scope, Map<String, Q> parScope){
         switch (cond.getOperator()) {
             case 1:
                 // Handle less than or equal to
-                return (Long)evaluateExpr(cond.getE1(), scope, parScope) <= (Long)evaluateExpr(cond.getE2(), scope, parScope);
+                return evaluateExpr(cond.getE1(), scope, parScope).getValue().value <= evaluateExpr(cond.getE2(), scope, parScope).getValue().value;
             case 2:
                 // Handle greater than or equal to
-                return (Long) evaluateExpr(cond.getE1(), scope, parScope) >= (Long) evaluateExpr(cond.getE2(), scope, parScope);
+                return  evaluateExpr(cond.getE1(), scope, parScope).getValue().value >=  evaluateExpr(cond.getE2(), scope, parScope).getValue().value;
             case 3:
                 // Handle equals
-                return ((Long) evaluateExpr(cond.getE1(), scope, parScope)).equals((Long) evaluateExpr(cond.getE2(), scope, parScope));
+                return ( evaluateExpr(cond.getE1(), scope, parScope).getValue().value).equals( evaluateExpr(cond.getE2(), scope, parScope).getValue().value);
             case 4:
                 // Handle not equals
-                return (Long) evaluateExpr(cond.getE1(), scope, parScope) != (Long) evaluateExpr(cond.getE2(), scope, parScope);
+                return  evaluateExpr(cond.getE1(), scope, parScope).getValue().value !=  evaluateExpr(cond.getE2(), scope, parScope).getValue().value;
             case 5:
                 // Handle less than
-                return (Long) evaluateExpr(cond.getE1(), scope, parScope) < (Long) evaluateExpr(cond.getE2(), scope, parScope);
+                return  evaluateExpr(cond.getE1(), scope, parScope).getValue().value <  evaluateExpr(cond.getE2(), scope, parScope).getValue().value;
             case 6:
                 // Handle greater than
-                return (Long) evaluateExpr(cond.getE1(), scope, parScope) > (Long) evaluateExpr(cond.getE2(), scope, parScope);
+                return  evaluateExpr(cond.getE1(), scope, parScope).getValue().value >  evaluateExpr(cond.getE2(), scope, parScope).getValue().value;
             case 7:
                 // Handle logical AND
                 return evaluateCond(cond.getC1(), scope, parScope) && evaluateCond(cond.getC2(), scope, parScope);
@@ -322,7 +330,7 @@ public class Interpreter {
 
 
     // handle executing the statement
-    Stmt executeStmt(Stmt s, Map<String, String> scope, Map<String, String> parScope){
+    Stmt executeStmt(Stmt s, Map<String, Q> scope, Map<String, Q> parScope){
         //handle different types of statements
         switch (s.getType()) {
             case 1:
@@ -352,11 +360,11 @@ public class Interpreter {
             case 6:
                 // Handle statement block
                 // update scope for the specific statement list
-                Map<String, String> updateParScope = new HashMap<String, String>(parScope);
+                Map<String, Q> updateParScope = new HashMap<String, Q>(parScope);
                 //move current scope into the new parent scope
                 updateParScope.putAll(scope);
                 //now create current scope to add stuff to for the list
-                Map<String, String> currentScope = new HashMap<String, String>();
+                Map<String, Q> currentScope = new HashMap<String, Q>();
                 Stmt stmt;
                 StmtList l = s.getStmtList();
                 //now iterate through statement list
@@ -375,10 +383,10 @@ public class Interpreter {
                             fatalError("Var name taken", 0);
                         }
                         //not duplicate can add to scope
-                        currentScope.put(name, evaluateExpr(stmt.getExpr(), currentScope, updateParScope).toString());
+                        currentScope.put(name, evaluateExpr(stmt.getExpr(), currentScope, updateParScope));
                     //handled delcaration, now handle return
                     }else if(stmt.getType() == 1){
-                        Expr build = new ConstExpr((Long) evaluateExpr(stmt.getExpr(), currentScope, updateParScope), null); 
+                        Expr build = new ConstExpr(evaluateExpr(stmt.getExpr(), currentScope, updateParScope).getValue(), null); 
                         Stmt out = new Stmt(Stmt.RETURN, build, null);
                         return out;
                     }
@@ -390,7 +398,7 @@ public class Interpreter {
                 //assignment
                 String ident = s.getIdent();
                 //types?
-                String value = evaluateExpr(s.getExpr(), scope, parScope).toString();
+                Q value = evaluateExpr(s.getExpr(), scope, parScope);
                 scope.replace(ident, value);
                 return s;
             case 8:
@@ -404,30 +412,6 @@ public class Interpreter {
                 return s;
             case 9:
                 //Call
-                // FuncDef funcDef = funcDefMap.get(s.getIdent());
-            
-                // FormalDeclList formalDeclList= funcDef.getFormalDeclList();
-                // ExprList exprList = s.getExprList();
-                // //should make sure the above lists are the same length. will fail also if only one list is null
-                // if(formalDeclList != null && exprList != null){
-                //     if(formalDeclList.getNeFormalDeclList().length() != exprList.getNeExprList().length()){
-                //       fatalError("Incorrect number of parameters passed to method: " + funcDef.getVarDecl().getIdent(), 0);
-                //     }
-                // }else if((formalDeclList == null && exprList != null) || (formalDeclList != null && exprList == null)){
-                //     fatalError("Incorrect number of parameters passed to method: " + funcDef.getVarDecl().getIdent(), 0);
-                // }
-                // Map<String, String> args = new HashMap<String, String>();
-                // if(formalDeclList != null && exprList != null){
-                //     // only runs if there are args to fill, will runFunc handle empty map ok?
-                //     fillArgs(args, scope, formalDeclList.getNeFormalDeclList(), exprList.getNeExprList(), parScope);
-                // }
-                // runFunc(funcDef, args);
-                // return s;
-
-
-
-
-
                 String i = s.getIdent();
                 ExprList exprList = s.getExprList();
                 //how to construct outside of parser?

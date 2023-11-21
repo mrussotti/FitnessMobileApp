@@ -2,25 +2,25 @@ package ast;
 
 public class Q {
 
-    final int value;
-    final Ref heap;
+    public INT value;
+    public Ref heap;
 
-    public Q(int value) {
+    public Q(long value) {
         this.value = value;
         this.heap = null;
     }
 
     public Q(Ref heap){
-        this.value = -1;
+        this.value = null;
         this.heap = heap;
     }
 
     public Q(){
-        this.value = -1;
+        this.value = null;
         this.heap = null;
     }
 
-    public int getInt() {
+    public INT getValue() {
         return value;
     }
 
