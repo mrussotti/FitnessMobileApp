@@ -161,6 +161,7 @@ expr ::= NIL
          %prec U_MINUS
       | LPAREN type:t RPAREN expr:e
          {: RESULT = new TypeCast(t, e, loc(eleft, eright)); :}
+         %prec U_MINUS
       | IDENT:i LPAREN exprList:e RPAREN
          {: RESULT = new CallExpr(i, e, loc(ileft, iright)); :}
       |  binaryExpr:e
