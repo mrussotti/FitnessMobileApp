@@ -67,7 +67,7 @@ white_space = {new_line} | [ \t\f]
 "int"             { return symbol("int", INT); }
 "Ref"             { return symbol("Ref", REF); }
 "Q"               { return symbol("Q", _Q); }
-"nil"             { return symbol("nil", NIL)}
+"nil"             { return symbol("nil", NIL); }
 "mutable"         { return symbol("mutable", MUTABLE); }
 
 /* separators */
