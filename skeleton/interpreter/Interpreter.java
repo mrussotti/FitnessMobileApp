@@ -1,5 +1,4 @@
 package interpreter;
-
 import java.io.*;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -197,7 +196,7 @@ public class Interpreter {
                 case BinaryExpr.PLUS: return (Long)evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope) + (Long)evaluateExpr(binaryExpr.getRightExpr(), scope, parScope);
                 case BinaryExpr.MINUS: return (Long)evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope) - (Long)evaluateExpr(binaryExpr.getRightExpr(), scope, parScope);
                 case BinaryExpr.TIMES: return (Long)evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope) * (Long)evaluateExpr(binaryExpr.getRightExpr(), scope, parScope); //multiplication for proj1
-                // case BindaryExpr.DOT: return new Ref
+                case BindaryExpr.DOT: return new Ref()
                 default: throw new RuntimeException("Unhandled operator");
             }
         }
@@ -210,15 +209,19 @@ public class Interpreter {
             }
             if(callExpr.getIdent().equals("left")){
                 // return left child of Ref
+                Expr ref = callExpr.getExprList().getNeExprList().getExpr();
             }
             if(callExpr.getIdent().equals("right")){
                 // return right child of Ref
+                Expr ref = callExpr.getExprList().getNeExprList().getExpr();
             }
             if(callExpr.getIdent().equals("isAtom")){
                 // return 1 if Q  is a nil Ref or an int, 0 otherwise
+                Expr ref = callExpr.getExprList().getNeExprList().getExpr();
             }
             if(callExpr.getIdent().equals("isNil")){
                 // return 1 if Q is nil, 0 otherwise
+                Expr ref = callExpr.getExprList().getNeExprList().getExpr();
             }
             if(callExpr.getIdent().equals("setLeft")){
                 // set left field of the Ref r to the Q value

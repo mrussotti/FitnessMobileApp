@@ -1,21 +1,24 @@
-// package ast;
+package ast;
 
-// public class Ref extends Type {
-//     final String value;
-//     final Ref left;
-//     final Ref right;
+public class Ref extends Type {
+    final Ref left;
+    final Ref right;
 
-//     public Ref(String value, Location loc) {
-//         super(loc);
-//         this.value = value;
-//     }
+    public Ref(Ref left, Ref right) {
+        this.left = left;
+        this.right = right;
+    }
 
-//     public String getIdent() {
-//         return value;
-//     }
+    public String getLeft() {
+        return left;
+    }
+    
+    public String getRight(){
+        return right;
+    }
 
-//     @Override
-//     public String toString() {
-//         return value.toString();
-//     }
-// }
+    @Override
+    public String toString() {
+        return "( " + left + " . " + right + " )";
+    }
+}
