@@ -1,6 +1,6 @@
 package ast;
 
-public class Ref extends Type {
+public class Ref extends Q {
     final Q left;
     final Q right;
 

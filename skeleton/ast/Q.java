@@ -1,6 +1,6 @@
 package ast;
 
-public class Q extends Type {
+public class Q {
 
     final int value;
     final Ref heap;
@@ -13,6 +13,11 @@ public class Q extends Type {
     public Q(Ref heap){
         this.value = -1;
         this.heap = heap;
+    }
+
+    public Q(){
+        this.value = -1;
+        this.heap = null;
     }
 
     public int getInt() {
