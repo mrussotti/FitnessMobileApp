@@ -30,10 +30,12 @@ public class Q {
 
     @Override
     public String toString(){
-        if(value == null){
-            return heap.toString();
-        }else if(heap == null){
+
+        if(value != null){
             return value.toString();
+        }
+        if(heap != null){
+            return heap.toString();
         }
         return "nil";
     }
