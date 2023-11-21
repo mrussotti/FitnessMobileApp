@@ -176,7 +176,9 @@ public class Interpreter {
 
     //method to evaluate expressions, takes expression, needs maps for scopeing, 
     Q evaluateExpr(Expr expr, Map<String, Q> scope, Map<String, Q> parScope){
-        if(expr instanceof ConstExpr){
+        if(expr == null){
+            return new Q();
+        }else if(expr instanceof ConstExpr){
             return((ConstExpr) expr).getValue();
         // case for identifiers
         } else if(expr instanceof IDENT){
