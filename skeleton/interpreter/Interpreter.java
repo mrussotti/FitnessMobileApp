@@ -193,9 +193,9 @@ public class Interpreter {
         } else if (expr instanceof BinaryExpr) {
             BinaryExpr binaryExpr = (BinaryExpr)expr;
             switch (binaryExpr.getOperator()) {
-                case BinaryExpr.PLUS: return new Q(evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope).getValue() + evaluateExpr(binaryExpr.getRightExpr(), scope, parScope).getValue());
-                case BinaryExpr.MINUS: return new Q(evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope).getValue() - evaluateExpr(binaryExpr.getRightExpr(), scope, parScope).getValue());
-                case BinaryExpr.TIMES: return new Q(evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope).getValue() * evaluateExpr(binaryExpr.getRightExpr(), scope, parScope).getValue()); //multiplication for proj1
+                case BinaryExpr.PLUS: return new Q(evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope).getValue().value + evaluateExpr(binaryExpr.getRightExpr(), scope, parScope).getValue().value);
+                case BinaryExpr.MINUS: return new Q(evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope).getValue().value - evaluateExpr(binaryExpr.getRightExpr(), scope, parScope).getValue().value);
+                case BinaryExpr.TIMES: return new Q(evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope).getValue().value * evaluateExpr(binaryExpr.getRightExpr(), scope, parScope).getValue().value); //multiplication for proj1
                 case BinaryExpr.DOT: return new Q(new Ref(evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope), evaluateExpr(binaryExpr.getRightExpr(), scope, parScope)));
                     
                 default: throw new RuntimeException("Unhandled operator");

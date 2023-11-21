@@ -6,7 +6,7 @@ public class Q {
     public Ref heap;
 
     public Q(long value) {
-        this.value = value;
+        this.value = new INT(value);
         this.heap = null;
     }
 
