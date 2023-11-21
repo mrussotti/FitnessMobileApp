@@ -196,38 +196,30 @@ public class Interpreter {
                 case BinaryExpr.PLUS: return (Long)evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope) + (Long)evaluateExpr(binaryExpr.getRightExpr(), scope, parScope);
                 case BinaryExpr.MINUS: return (Long)evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope) - (Long)evaluateExpr(binaryExpr.getRightExpr(), scope, parScope);
                 case BinaryExpr.TIMES: return (Long)evaluateExpr(binaryExpr.getLeftExpr(), scope, parScope) * (Long)evaluateExpr(binaryExpr.getRightExpr(), scope, parScope); //multiplication for proj1
-                case BindaryExpr.DOT: 
-                    long address = getNextAvailableAddr();
-                    initObjectAt(address);
-                    Ref ref = new Ref(address);
-                    ref.setLeft(left);
-                    ref.setRight(right);
-                    return ref;
+                //case BindaryExpr.DOT: 
+                    
                 default: throw new RuntimeException("Unhandled operator");
             }
         }
         //calls appear here, but first we need to implement FuncDefList and change runFunc to accept args as exprList
          else if(expr instanceof CallExpr){
             CallExpr callExpr = (CallExpr)expr;
+            Expr temp = callExpr.getExprList().getNeExprList().getExpr();
             if(callExpr.getIdent().equals("randomInt")){
                 //using ThreadLocalRandom to generate a long as Random's nextLong doesn't take parameters
-                return ThreadLocalRandom.current().nextLong(((Long) evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scope, parScope)));
+                return ThreadLocalRandom.current().nextLong(((Long) evaluateExpr(temp, scope, parScope)));
             }
             if(callExpr.getIdent().equals("left")){
                 // return left child of Ref
-                Expr ref = callExpr.getExprList().getNeExprList().getExpr();
             }
             if(callExpr.getIdent().equals("right")){
                 // return right child of Ref
-                Expr ref = callExpr.getExprList().getNeExprList().getExpr();
             }
             if(callExpr.getIdent().equals("isAtom")){
                 // return 1 if Q  is a nil Ref or an int, 0 otherwise
-                Expr ref = callExpr.getExprList().getNeExprList().getExpr();
             }
             if(callExpr.getIdent().equals("isNil")){
                 // return 1 if Q is nil, 0 otherwise
-                Expr ref = callExpr.getExprList().getNeExprList().getExpr();
             }
             if(callExpr.getIdent().equals("setLeft")){
                 // set left field of the Ref r to the Q value
@@ -435,7 +427,7 @@ public class Interpreter {
 
 
 
-
+                String i = s.getIdent();
                 ExprList exprList = s.getExprList();
                 //how to construct outside of parser?
                 CallExpr call = new CallExpr(i, exprList, null);

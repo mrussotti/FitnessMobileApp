@@ -11,16 +11,15 @@ public class Q extends Type {
     }
 
     public Q(Ref heap){
-        this.value = null;
+        this.value = -1;
         this.heap = heap;
     }
 
-    public String getInt() {
+    public int getInt() {
         return value;
     }
 
-    @Override
-    public String toString() {
-        return value.toString();
+    public Ref getRef(){
+        return heap;
     }
 }

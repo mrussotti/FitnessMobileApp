@@ -1,28 +1,20 @@
 package ast;
 
 public class Ref extends Type {
-    final Ref left;
-    final Ref right;
+    final Q left;
+    final Q right;
 
-    public Ref( long address) {
-        this.left = null;
-        this.right = null;
+    public Ref(Q left, Q right) {
+        this.left = left;
+        this.right = right;
     }
 
-    public String getLeft() {
+    public Q getLeft() {
         return left;
     }
     
-    public String getRight(){
+    public Q getRight(){
         return right;
-    }
-
-    public void setLeft(Q left){
-        this.left = left;
-    }
-
-    public void setRight(Q right){
-        this.right = right;
     }
 
     @Override
