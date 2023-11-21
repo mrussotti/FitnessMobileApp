@@ -395,10 +395,11 @@ public class Interpreter {
                 return s;
             case 8:
                 //while
-                boolean bool = evaluateCond(s.getCond(), scope, parScope);
-                while(bool){
-                    bool = evaluateCond(s.getCond(), scope, parScope);
-                    executeStmt(s.getStmt1(), scope, parScope);
+                while(evaluateCond(s.getCond(), scope, parScope)){
+                    Stmt run = executeStmt(s.getStmt1(), scope, parScope);
+                    if(run.getType() == 1){
+                        return run;
+                    }
                 }
                 return s;
             case 9:
