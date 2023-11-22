@@ -258,21 +258,44 @@ public class Interpreter {
             }
             if(callExpr.getIdent().equals("left")){
                 // return left child of Ref
+                Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
+                return ret.heap.getLeft();
             }
             if(callExpr.getIdent().equals("right")){
                 // return right child of Ref
+                Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
+                return ret.heap.getRight();
             }
             if(callExpr.getIdent().equals("isAtom")){
-                // return 1 if Q  is a nil Ref or an int, 0 otherwise
+                // return 1 if Q is a nil Ref or an int, 0 otherwise
+                Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
+                if(ret.value != null){
+                    return new Q((long)0);
+                }
+                if(ret.heap != null){
+                    return new Q((long)0);
+                }
+                return new Q((long) 1);
             }
             if(callExpr.getIdent().equals("isNil")){
                 // return 1 if Q is nil, 0 otherwise
+                Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
+                if(ret.value == null && ret.heap == null){
+                    return new Q((long)1);
+                }
+                return new Q((long)0);
             }
             if(callExpr.getIdent().equals("setLeft")){
                 // set left field of the Ref r to the Q value
+                Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
+                Q val= evaluateExpr(callExpr.getExprList().getNeExprList().getNeExprList().getExpr(), scopeStack);
+                ret.heap.left = val;
             }
             if(callExpr.getIdent().equals("setRight")){
                 // set right field of the Ref r to the Q value
+                Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
+                Q val= evaluateExpr(callExpr.getExprList().getNeExprList().getNeExprList().getExpr(), scopeStack);
+                ret.heap.right = val;
             }
             FuncDef funcDef = funcDefMap.get(callExpr.getIdent());
             
