@@ -134,9 +134,10 @@ public class Interpreter {
             if(!funcDefMap.containsKey(funcName)){
                 funcDefMap.put(funcName, funcDef);
             } else {
-                fatalError("Duplicate function names found", 0);
+                fatalError("Duplicate function names found" + funcName, 0);
             }
             //step
+            System.out.println(funcDefList.getNextFuncDef());
             fillMap(funcDefList.getNextFuncDef());
         }
         return null;
@@ -318,7 +319,7 @@ public class Interpreter {
         } else if(expr instanceof TypeCast){
             TypeCast typeCast = (TypeCast) expr;
             //what type are we casting from
-            switch(typeCast.getCastExpr().getType()){
+            switch(typeCast.getCastType().getType()){
                 case 1:
                     //From Int to Q
                     return evaluateExpr(typeCast.getCastExpr(), scopeStack);
