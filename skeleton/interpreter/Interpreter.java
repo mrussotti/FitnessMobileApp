@@ -165,7 +165,6 @@ public class Interpreter {
                 return new Q();
             }
         }
-        Q val= evaluateExpr(callExpr.getExprList().getNeExprList().getNeExprList().getExpr(), scopeStack);
         return null;
     }
 
