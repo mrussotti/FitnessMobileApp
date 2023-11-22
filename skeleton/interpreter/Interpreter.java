@@ -164,9 +164,9 @@ public class Interpreter {
                 }
                 return new Q();
             }
-            fatalError("Duplicate function names found", 0);
         }
-        return new Q();
+        Q val= evaluateExpr(callExpr.getExprList().getNeExprList().getNeExprList().getExpr(), scopeStack);
+        return null;
     }
 
     public void addToScopeStack(List<Map<String, Q>> scopeStack, String name, Q value){
