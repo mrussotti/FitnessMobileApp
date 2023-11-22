@@ -290,12 +290,14 @@ public class Interpreter {
                 Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
                 Q val= evaluateExpr(callExpr.getExprList().getNeExprList().getNeExprList().getExpr(), scopeStack);
                 ret.heap.left = val;
+                return new Q((long)1 );
             }
             if(callExpr.getIdent().equals("setRight")){
                 // set right field of the Ref r to the Q value
                 Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
                 Q val= evaluateExpr(callExpr.getExprList().getNeExprList().getNeExprList().getExpr(), scopeStack);
                 ret.heap.right = val;
+                return new Q((long)1 );
             }
             FuncDef funcDef = funcDefMap.get(callExpr.getIdent());
             
