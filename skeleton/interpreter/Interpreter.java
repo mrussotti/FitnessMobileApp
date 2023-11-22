@@ -269,10 +269,7 @@ public class Interpreter {
             if(callExpr.getIdent().equals("isAtom")){
                 // return 1 if Q is a nil Ref or an int, 0 otherwise
                 Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
-                if(ret.value != null){
-                    return new Q((long)0);
-                }
-                if(ret.heap != null){
+                if(ret.getRef() != null && ret.getINT() == null){
                     return new Q((long)0);
                 }
                 return new Q((long) 1);
@@ -452,9 +449,7 @@ public class Interpreter {
                         currentScope.put(name, evaluateExpr(stmt.getExpr(), scopeStack));
                     //handled delcaration, now handle return
                     }else if(stmt.getType() == 1){
-                        Expr build = new ConstExpr(evaluateExpr(stmt.getExpr(), scopeStack).getINT().getValue(), null); 
-                        Stmt out = new Stmt(Stmt.RETURN, build, null);
-                        return out;
+                        return stmt;
                     }
                     //pulls off statement we worked with
                     l = l.getStmtList();
