@@ -19,6 +19,6 @@ public class Ref extends Q {
 
     @Override
     public String toString() {
-        return "( " + left + " . " + right + " )";
+        return "(" + left + " . " + right + ")";
     }
 }
