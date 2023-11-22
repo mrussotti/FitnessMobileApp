@@ -4,6 +4,7 @@ public class Q {
 
     public INT value;
     public Ref heap;
+    public boolean mutable;
 
     public Q(long value) {
         this.value = new INT(value);
