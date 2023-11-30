@@ -156,10 +156,10 @@ public class Interpreter {
         for (Map<String, Q> map : scopeStack){
             if(map.containsKey(name)){
                 Q obj = map.get(name);
-                if(obj.value != null){
-                    return new Q(obj.value.value);
+                if(obj.inte != null){
+                    return new Q(obj.inte.value);
                 }
-                if(obj.heap != null){
+                if(obj.heap != Ref.NIL){
                     return new Q(obj.heap);
                 }
                 return new Q();
@@ -168,24 +168,24 @@ public class Interpreter {
         return null;
     }
 
-    public void addToScopeStack(List<Map<String, Q>> scopeStack, String name, Q value){
+    public void addToScopeStack(List<Map<String, Q>> scopeStack, String name, Q q){
         for(int i = scopeStack.size()-1; i>=0; i--){
             if(!scopeStack.get(i).containsKey(name)){
-                scopeStack.get(i).put(name, value);
+                scopeStack.get(i).put(name, q);
             }
         }
     }
 
-    public void updateScopeStack(List<Map<String, Q>> scopeStack, String name, Q value){
+    public void updateScopeStack(List<Map<String, Q>> scopeStack, String name, Q q){
         for(int i = scopeStack.size()-1; i>=0; i--){
             if(scopeStack.get(i).containsKey(name)){
-                if(value.value != null){
-                    scopeStack.get(i).replace(name, new Q(value.value.value));
-                }
-                if(value.heap != null){
-                    scopeStack.get(i).replace(name, new Q(value.heap));
-                }
-                scopeStack.get(i).replace(name, new Q());
+                // if(q.inte != null){
+                //     scopeStack.get(i).replace(name, new Q(q.inte.value));
+                // }
+                // if(q.heap != Ref.NIL){
+                //     scopeStack.get(i).replace(name, new Q(q.heap));
+                // }
+                scopeStack.get(i).replace(name, q);
             }
         }
     }
@@ -208,7 +208,7 @@ public class Interpreter {
                 String name = s.getVarDecl().getIdent();
                 //Don't allow duplicate var names
                 if(withinScopeStack(scopeStack, name)){
-                    fatalError("Var name taken", 0);
+                    fatalError("Var name taken (original stmtList)", 0);
                 }
                 //not duplicate can add to scope
                 scope.put(name, evaluateExpr(s.getExpr(), scopeStack));
@@ -224,8 +224,8 @@ public class Interpreter {
 
     //method to evaluate expressions, takes expression, needs maps for scopeing, 
     Q evaluateExpr(Expr expr, List<Map<String, Q>> scopeStack){
-        if(expr == null){
-            return new Q();
+        if(expr instanceof NilExpr){
+            return new Q(Ref.NIL);
         }else if(expr instanceof ConstExpr){
             return((ConstExpr) expr).getValue();
         // case for identifiers
@@ -251,33 +251,36 @@ public class Interpreter {
         //calls appear here, but first we need to implement FuncDefList and change runFunc to accept args as exprList
          else if(expr instanceof CallExpr){
             CallExpr callExpr = (CallExpr)expr;
-            Expr temp = callExpr.getExprList().getNeExprList().getExpr();
             if(callExpr.getIdent().equals("randomInt")){
                 //using ThreadLocalRandom to generate a long as Random's nextLong doesn't take parameters
-                return new Q(ThreadLocalRandom.current().nextLong((evaluateExpr(temp, scopeStack).getINT().getValue())));
+                return new Q(ThreadLocalRandom.current().nextLong((evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack).getINT().getValue())));
             }
             if(callExpr.getIdent().equals("left")){
                 // return left child of Ref
                 Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
-                return ret.heap.getLeft();
+                return ret.getRef().getLeft();
             }
             if(callExpr.getIdent().equals("right")){
                 // return right child of Ref
                 Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
-                return ret.heap.getRight();
+                System.out.println(ret.getRef().toString());
+                return ret.getRef().getRight();
             }
             if(callExpr.getIdent().equals("isAtom")){
                 // return 1 if Q is a nil Ref or an int, 0 otherwise
                 Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
-                if(ret.getRef() != null && ret.getINT() == null){
-                    return new Q((long)0);
+                if(ret.getRef() == null && ret.getINT() != null){
+                    return new Q((long) 1);
                 }
-                return new Q((long) 1);
+                if(ret.getRef().isNil()){
+                    return new Q((long) 1);
+                }
+                return new Q((long) 0);
             }
             if(callExpr.getIdent().equals("isNil")){
                 // return 1 if Q is nil, 0 otherwise
                 Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
-                if(ret.value == null && ret.heap == null){
+                if(ret.heap != null && ret.heap.isNil()){
                     return new Q((long)1);
                 }
                 return new Q((long)0);
@@ -286,14 +289,14 @@ public class Interpreter {
                 // set left field of the Ref r to the Q value
                 Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
                 Q val= evaluateExpr(callExpr.getExprList().getNeExprList().getNeExprList().getExpr(), scopeStack);
-                ret.heap.left = val;
+                ret.heap.setLeft(val);
                 return new Q((long)1 );
             }
             if(callExpr.getIdent().equals("setRight")){
                 // set right field of the Ref r to the Q value
                 Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
                 Q val= evaluateExpr(callExpr.getExprList().getNeExprList().getNeExprList().getExpr(), scopeStack);
-                ret.heap.right = val;
+                ret.heap.setRight(val);
                 return new Q((long)1 );
             }
             FuncDef funcDef = funcDefMap.get(callExpr.getIdent());
@@ -316,25 +319,8 @@ public class Interpreter {
             return runFunc(funcDef, args);
         } else if(expr instanceof TypeCast){
             TypeCast typeCast = (TypeCast) expr;
-            //what type are we casting from
-            switch(typeCast.getCastType().getType()){
-                case 1:
-                    //From Int to Q
-                    return evaluateExpr(typeCast.getCastExpr(), scopeStack);
-                case 2:
-                    //From Ref to Q
-                    return evaluateExpr(typeCast.getCastExpr(), scopeStack);
-                case 3:
-                    if(typeCast.getCastType().getType() == 1){
-                        return new INT(evaluateExpr(typeCast.getCastExpr(), scopeStack).getINT().getValue());
-                    }else if(typeCast.getCastType().getType() == 2){
-                        return new Ref(evaluateExpr(typeCast.getCastExpr(), scopeStack).getRef().getLeft(), evaluateExpr(typeCast.getCastExpr(), scopeStack).getRef().getRight());
-                        
-                    }
-                    return null;
-                default: throw new RuntimeException("unknown type");
-
-            }
+            //what type are we casting from doesn't matter
+            return evaluateExpr(typeCast.getCastExpr(), scopeStack);
         }
          else {
             throw new RuntimeException("Unhandled Expr type");
@@ -359,22 +345,22 @@ public class Interpreter {
         switch (cond.getOperator()) {
             case 1:
                 // Handle less than or equal to
-                return evaluateExpr(cond.getE1(), scopeStack).getINT().value <= evaluateExpr(cond.getE2(), scopeStack).getINT().value;
+                return evaluateExpr(cond.getE1(), scopeStack).getINT().getValue() <= evaluateExpr(cond.getE2(), scopeStack).getINT().getValue();
             case 2:
                 // Handle greater than or equal to
-                return  evaluateExpr(cond.getE1(), scopeStack).getINT().value >=  evaluateExpr(cond.getE2(), scopeStack).getINT().value;
+                return  evaluateExpr(cond.getE1(), scopeStack).getINT().getValue() >=  evaluateExpr(cond.getE2(), scopeStack).getINT().getValue();
             case 3:
                 // Handle equals
-                return ( evaluateExpr(cond.getE1(), scopeStack).getINT().value).equals( evaluateExpr(cond.getE2(), scopeStack).getINT().value);
+                return ( evaluateExpr(cond.getE1(), scopeStack).getINT().getValue()).equals( evaluateExpr(cond.getE2(), scopeStack).getINT().getValue());
             case 4:
                 // Handle not equals
-                return  evaluateExpr(cond.getE1(), scopeStack).getINT().value !=  evaluateExpr(cond.getE2(), scopeStack).getINT().value;
+                return  evaluateExpr(cond.getE1(), scopeStack).getINT().getValue() !=  evaluateExpr(cond.getE2(), scopeStack).getINT().getValue();
             case 5:
                 // Handle less than
-                return  evaluateExpr(cond.getE1(), scopeStack).getINT().value <  evaluateExpr(cond.getE2(), scopeStack).getINT().value;
+                return  evaluateExpr(cond.getE1(), scopeStack).getINT().getValue() <  evaluateExpr(cond.getE2(), scopeStack).getINT().getValue();
             case 6:
                 // Handle greater than
-                return  evaluateExpr(cond.getE1(), scopeStack).getINT().value >  evaluateExpr(cond.getE2(), scopeStack).getINT().value;
+                return  evaluateExpr(cond.getE1(), scopeStack).getINT().getValue() >  evaluateExpr(cond.getE2(), scopeStack).getINT().getValue();
             case 7:
                 // Handle logical AND
                 return evaluateCond(cond.getC1(), scopeStack) && evaluateCond(cond.getC2(), scopeStack);
@@ -443,7 +429,7 @@ public class Interpreter {
                         String name = stmt.getVarDecl().getIdent();
                         //Don't allow duplicate var names
                         if(withinScopeStack(scopeStack, name)){
-                            fatalError("Var name taken", 0);
+                            fatalError("Var name taken (stmt -> stmtList)", 0);
                         }
                         //not duplicate can add to scope
                         currentScope.put(name, evaluateExpr(stmt.getExpr(), scopeStack));
@@ -454,12 +440,14 @@ public class Interpreter {
                     //pulls off statement we worked with
                     l = l.getStmtList();
                 }
+                scopeStack.remove(currentScope);
                 return s;
             case 7:
                 //assignment
                 String ident = s.getIdent();
                 //types?
                 Q value = evaluateExpr(s.getExpr(), scopeStack);
+                //System.out.println("ident: " + ident + " value: " + value.toString());
                 updateScopeStack(scopeStack, ident, value);
                 return s;
             case 8:
@@ -478,6 +466,9 @@ public class Interpreter {
                 //how to construct outside of parser?
                 CallExpr call = new CallExpr(i, exprList, null);
                 evaluateExpr(call, scopeStack);
+                return s;
+            case 10:
+                //Handle Free
                 return s;
             default:
                 // Handle default case

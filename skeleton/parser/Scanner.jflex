@@ -69,6 +69,7 @@ white_space = {new_line} | [ \t\f]
 "Q"               { return symbol("Q", _Q); }
 "nil"             { return symbol("nil", NIL); }
 "mutable"         { return symbol("mutable", MUTABLE); }
+"free"            { return symbol("free", FREE); }
 
 /* separators */
 "."               { return symbol(".", DOT); }

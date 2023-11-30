@@ -34,7 +34,7 @@ terminal Long INTCONST;
 terminal String IDENT;
 terminal INT, REF, _Q;
 terminal LTE, GTE, EQ, NOTEQ, LT, GT, AND, OR, NOT;
-terminal IF, ELSE, WHILE, MUTABLE, NIL;
+terminal IF, ELSE, WHILE, MUTABLE, NIL, FREE;
 
 //non-terminal symbols
 non terminal Program         program;
@@ -129,6 +129,8 @@ stmt ::= RETURN expr:e SEMICOLON
          {: RESULT = new Stmt(Stmt.ELSE, c, s1, s2, loc(cleft, cright)); :}
       | WHILE LPAREN cond:c RPAREN stmt:s
          {: RESULT = new Stmt(Stmt.WHILE, c, s, loc(cleft, cright)); :}
+      | FREE expr:e SEMICOLON
+         {: RESULT = new Stmt(Stmt.FREE, e, loc(eleft, eright)); :}
       | IDENT:i LPAREN exprList:e RPAREN SEMICOLON
          {: RESULT = new Stmt(Stmt.CALL, i, e, loc(eleft, eright)); :}
       | PRINT expr:e SEMICOLON
@@ -150,8 +152,8 @@ neExprList ::= expr:e COMMA neExprList:n
       ;
 
 //an expression will become a terminal and contains integers, parenthasis, and the unary minus
-expr ::= NIL
-         {: RESULT = null; :}
+expr ::= NIL:n
+         {: RESULT = new NilExpr(loc(nleft, nright)); :}
       | INTCONST:c
          {: RESULT = new ConstExpr(c, loc(cleft, cright)); :}
       | IDENT:i

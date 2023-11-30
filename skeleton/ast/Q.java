@@ -2,27 +2,27 @@ package ast;
 
 public class Q {
 
-    public INT value;
+    public INT inte;
     public Ref heap;
     public boolean mutable;
 
     public Q(long value) {
-        this.value = new INT(value);
+        this.inte = new INT(value);
         this.heap = null;
     }
 
     public Q(Ref heap){
-        this.value = null;
+        this.inte = null;
         this.heap = heap;
     }
 
     public Q(){
-        this.value = null;
+        this.inte = null;
         this.heap = null;
     }
 
     public INT getINT() {
-        return value;
+        return inte;
     }
 
     public Ref getRef(){
@@ -32,8 +32,8 @@ public class Q {
     @Override
     public String toString(){
 
-        if(value != null){
-            return value.toString();
+        if(inte != null){
+            return inte.toString();
         }
         if(heap != null){
             return heap.toString();

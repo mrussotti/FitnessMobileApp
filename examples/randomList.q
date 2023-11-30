@@ -2,11 +2,15 @@ mutable Q main (mutable int arg) {
 	if (arg == 0)
 		return nil;
 	mutable Ref list = randomList(arg);
+	print(arg);
 	while (arg > 0) {
+		print(arg);
 		int index = randomInt(arg);
 		list = rmElement(list, index);
 		list = randomInt(100000) . list;
+		print(arg - 1);
 		arg = arg - 1;
+		print(arg);
 	}
 	return length(list);
 }
@@ -30,5 +34,6 @@ mutable Ref rmElement(Ref list, int index) {
 		return (Ref)right(list);
 	}
 	setRight(list, rmElement((Ref)right(list), index-1));
+	print(list);
 	return list;
 }

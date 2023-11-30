@@ -34,5 +34,7 @@ public class VarDecl extends FuncDef {
         return ident;
     }
 
-    
+    public boolean isMutable(){
+        return mutable;
+    }
 }

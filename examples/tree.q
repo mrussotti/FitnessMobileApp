@@ -11,6 +11,8 @@ Q makeTree(int depth) {
 }
 
 int sum(Q tree) {
+    print(tree);
+    print(isAtom(tree));
     if (isAtom(tree) != 0)
         return (int)tree;
     return sum(left((Ref)tree)) + sum(right((Ref)tree));

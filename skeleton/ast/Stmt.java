@@ -14,6 +14,7 @@ public class Stmt extends StmtList {
     public static final int ASSIGN = 7;
     public static final int WHILE = 8;
     public static final int CALL = 9;
+    public static final int FREE = 10;
     //must implement if and if-else, and return(?) and <stmtList>
 
     //statements have an expression
