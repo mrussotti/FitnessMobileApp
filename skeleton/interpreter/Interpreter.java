@@ -263,12 +263,15 @@ public class Interpreter {
             if(callExpr.getIdent().equals("right")){
                 // return right child of Ref
                 Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
-                System.out.println(ret.getRef().toString());
+                System.out.println(ret);
                 return ret.getRef().getRight();
             }
             if(callExpr.getIdent().equals("isAtom")){
                 // return 1 if Q is a nil Ref or an int, 0 otherwise
                 Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
+                if(ret.getINT() == null && ret.getRef()== null){
+                    ret.heap = Ref.NIL;
+                }
                 if(ret.getRef() == null && ret.getINT() != null){
                     return new Q((long) 1);
                 }
@@ -280,10 +283,18 @@ public class Interpreter {
             if(callExpr.getIdent().equals("isNil")){
                 // return 1 if Q is nil, 0 otherwise
                 Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
-                if(ret.heap != null && ret.heap.isNil()){
-                    return new Q((long)1);
+                System.out.println("ret: " + ret);
+                if(ret.getINT() == null && ret.getRef()== null){
+                    ret.heap = Ref.NIL;
                 }
-                return new Q((long)0);
+                if(ret.getINT() != null || ret.getRef() == null || !ret.getRef().isNil()){
+                    System.out.println("not nil");
+                    
+                        return new Q((long)0);
+                    
+                }
+                System.out.println("nil");
+                return new Q((long)1);
             }
             if(callExpr.getIdent().equals("setLeft")){
                 // set left field of the Ref r to the Q value

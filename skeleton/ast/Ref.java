@@ -34,6 +34,7 @@ public class Ref extends Q {
     @Override
     public String toString() {
         if (this == NIL){
+            
             return "nil";
         }
         return "(" + left + " . " + right + ")";
