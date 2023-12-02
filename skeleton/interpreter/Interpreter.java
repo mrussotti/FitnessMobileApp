@@ -2,6 +2,12 @@ package interpreter;
 import java.io.*;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import java.util.concurrent.ExecutionException;
+
 
 import parser.ParserWrapper;
 import ast.*;
@@ -332,6 +338,58 @@ public class Interpreter {
             TypeCast typeCast = (TypeCast) expr;
             //what type are we casting from doesn't matter
             return evaluateExpr(typeCast.getCastExpr(), scopeStack);
+        } else if( expr instanceof ConcurrentExpression){
+            ConcurrentExpression concurrentExpression = (ConcurrentExpression) expr;
+            BinaryExpr binaryExpr = concurrentExpression.getBinaryExpr();
+            // Create a list of expressions and variable scopes
+            List<Expr> exprList = new ArrayList<Expr>();
+            exprList.add(binaryExpr.getLeftExpr());
+            exprList.add(binaryExpr.getRightExpr());
+            List<List<Map<String, Q>>> variableScopeList = new ArrayList<List<Map<String, Q>>>();
+            variableScopeList.add(scopeStack);
+            variableScopeList.add(scopeStack);
+
+            //add two expressions to list, should be same scope TODO
+
+            // Create a ThreadPoolExecutor with 10 threads
+            ExecutorService executor = Executors.newFixedThreadPool(2);
+
+            // Submit each expression to the executor
+            List<Future<Q>> futureList = new ArrayList<>();
+            for (int i = 0; i < exprList.size(); i++) {
+                Expr conExpr = exprList.get(i);
+                List<Map<String, Q>> variableScope = variableScopeList.get(i);
+                ConcurrentExpr concurrentExpr = new ConcurrentExpr(conExpr, variableScope);
+                Future<Q> future = executor.submit(concurrentExpr);
+                futureList.add(future);
+            }
+
+            // Wait for all computations to complete
+            // Wait for all computations to complete
+            List<Q> resultList = new ArrayList<>();
+            for (Future<Q> future : futureList) {
+                try {
+                    Q result = future.get();
+                    resultList.add(result);
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+
+
+            // Shutdown the executor
+            executor.shutdown();
+
+            //collect results from resultList, create a new binaryExpression object and pass it into evaluate expr
+            switch (binaryExpr.getOperator()) {
+                case BinaryExpr.PLUS: return new Q(resultList.get(0).getINT().getValue() + resultList.get(1).getINT().getValue());
+                case BinaryExpr.MINUS: return new Q(resultList.get(0).getINT().getValue() - resultList.get(1).getINT().getValue());
+                case BinaryExpr.TIMES: return new Q(resultList.get(0).getINT().getValue() * resultList.get(1).getINT().getValue()); //multiplication for proj1
+                case BinaryExpr.DOT: return new Q(new Ref(resultList.get(0), resultList.get(1)));
+                    
+                default: throw new RuntimeException("Unhandled operator");
+            }
+
         }
          else {
             throw new RuntimeException("Unhandled Expr type");
@@ -486,4 +544,29 @@ public class Interpreter {
         }
         return s;
     }
+
+
+    public class ConcurrentExpr implements Callable<Q> {
+        private Expr expr;
+        private List<Map<String, Q>> variableScope;
+
+        public ConcurrentExpr(Expr expr, List<Map<String, Q>> variableScope) {
+            this.expr = expr;
+            this.variableScope = variableScope;
+        }
+
+        // public Q run() {
+        //     Q out = evaluateExpr(expr, variableScope);
+        //     return out;
+        // }
+
+        public Q call() throws Exception {
+            Q out = evaluateExpr(expr, variableScope);
+            return out;
+        }
+    }
+
+
+        
+    
 }

@@ -28,7 +28,7 @@ parser code {:
 :};
 
 //terminal symbols
-terminal DOT, PLUS, MINUS, LPAREN, RPAREN, LCURL, RCURL, PRINT, COMMA;
+terminal DOT, PLUS, MINUS, LPAREN, RPAREN, LCURL, RCURL, PRINT, COMMA, LBRACK, RBRACK;
 terminal TIMES, U_MINUS, RETURN, SEMICOLON, EQUALS;
 terminal Long INTCONST;
 terminal String IDENT;
@@ -168,6 +168,8 @@ expr ::= NIL:n
          {: RESULT = new CallExpr(i, e, loc(ileft, iright)); :}
       |  binaryExpr:e
          {: RESULT = e; :}
+      | LBRACK binaryExpr:e RBRACK
+         {: RESULT = new ConcurrentExpression(e, loc(eleft, eright)); :}
       |  LPAREN expr:e RPAREN
          {: RESULT = e; :}
       ;

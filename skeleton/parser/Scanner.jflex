@@ -81,6 +81,9 @@ white_space = {new_line} | [ \t\f]
 "{"               { return symbol("{",  LCURL); }
 "}"               { return symbol("}",  RCURL); }
 ","               { return symbol(",", COMMA); }
+"["               { return symbol("[", LBRACK); }
+"]"               { return symbol("]", RBRACK); }
+
 
 /* End statement or program */
 "return"          { return symbol("return",  RETURN); }
