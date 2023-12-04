@@ -1,19 +1,16 @@
 package ast;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class Ref extends Q {
     public Q left;
     public Q right;
-    //public volatile int lock;
-    public ReentrantLock lock = new ReentrantLock();
-
+    public int lock;
 
     public static final Ref NIL = new Ref(null, null);
 
     public Ref(Q left, Q right) {
         this.left = left;
         this.right = right;
-        //this.lock = 0;
+        this.lock = 0;
     }
 
     public Q getLeft() {
@@ -24,35 +21,16 @@ public class Ref extends Q {
         return right;
     }
 
-    // public synchronized boolean isLocked(){
-    //     return lock == 1;
-    // }
-
-    // public synchronized boolean tryLock(){
-    //     if(isLocked()){
-    //         return false;
-    //     }else{
-    //         lock = 1;
-    //         return true;
-    //     }
-    // }
-
-    // public synchronized void release(){
-    //     lock = 0;
-    // }
-
-    public boolean isLocked(){
-        return lock.isLocked();
+    public synchronized boolean isLocked(){
+        return lock == 1;
     }
 
-    public boolean tryLock(){
-        return lock.tryLock();
+    public synchronized void lock(){
+        lock = 1;
     }
 
-    public void release(){
-        if(isLocked()){
-            lock.unlock();
-        }
+    public synchronized void release(){
+        lock = 0;
     }
 
     public boolean isNil(){

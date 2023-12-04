@@ -7,9 +7,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 
 
 import parser.ParserWrapper;
@@ -321,51 +318,39 @@ public class Interpreter {
                 ret.heap.setRight(val);
                 return new Q((long)1 );
             }
-            // if (callExpr.getIdent().equals("acq")){
-            //     // aquire lock of object referenced by r, return 1
-            //     Ref r = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack).heap;
-            //     int count = 0;
-            //     while(r.tryLock()){
-            //         //System.out.println("Waiting for unlock on: " + r.toString());
-            //         System.out.print("");
-            //         // if(count > 10000){
-            //         //     break;
-            //         // }
-            //         count++;
-            //     }
-            //     //synchronized(r){
-            //         //if(!r.isLocked()){
-            //             //r.lock();
-            //         //}
-
-            //     //}
-            //     return new Q((long)1 );
-            // }
-            // if (callExpr.getIdent().equals("rel")){
-            //     // release lock of object referenced by r, return1
-            //     Ref r = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack).heap;
-            //     //synchronized(r){
-            //         //if(!r.isLocked()){
-            //             r.release();
-            //         //}else{
-            //             //System.out.println("release error");
-            //         //}
-            //     //}
-            //     return new Q((long)1 );
-            // }
             if (callExpr.getIdent().equals("acq")){
+                // aquire lock of object referenced by r, return 1
                 Ref r = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack).heap;
-                while(!r.tryLock()){
+                int count = 0;
+                while(r.isLocked()){
+                    //System.out.println("Waiting for unlock on: " + r.toString());
                     System.out.print("");
+                    if(count > 10000){
+                        break;
+                    }
+                    count++;
                 }
+                //synchronized(r){
+                    //if(!r.isLocked()){
+                        r.lock();
+                    //}
+
+                //}
                 return new Q((long)1 );
             }
             if (callExpr.getIdent().equals("rel")){
+                // release lock of object referenced by r, return1
                 Ref r = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack).heap;
-                r.release();
+                //synchronized(r){
+                    //if(!r.isLocked()){
+                        r.release();
+                    //}else{
+                        //System.out.println("release error");
+                    //}
+                //}
                 return new Q((long)1 );
             }
-
+            
             FuncDef funcDef = funcDefMap.get(callExpr.getIdent());
             
             FormalDeclList formalDeclList= funcDef.getFormalDeclList();
@@ -399,27 +384,17 @@ public class Interpreter {
             Future<Q> future1 = executor.submit(new ConcurrentExpr(binaryExpr.getLeftExpr(), scopeStack));
             Future<Q> future2 = executor.submit(new ConcurrentExpr(binaryExpr.getRightExpr(), scopeStack));
 
-            Q result1 = new Q(0L);
-            Q result2 = new Q(0L);
             // Wait for all computations to complete
+            Q result1 = null;
+            Q result2 = null;
+            System.out.println("we're waiting on results now");
             try {
                 System.out.println("waiting on thread 1 result");
-                result1 = future1.get(30, TimeUnit.SECONDS);
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            } catch (TimeoutException e){
-                System.out.println("Thread 1 took too long, shutting down");
-                fatalError("stuck on thread", 0);
-            }
-
-            try {
+                result1 = future1.get();
                 System.out.println("waiting on thread 2 result");
-                result2 = future2.get(30, TimeUnit.SECONDS);
+                result2 = future2.get();
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
-            } catch (TimeoutException e){
-                System.out.println("Thread 2 took too long, shutting down");
-                fatalError("stuck on thread", 0);
             }
 
             // Shutdown the executor
