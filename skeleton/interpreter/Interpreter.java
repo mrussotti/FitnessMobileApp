@@ -217,7 +217,11 @@ public class Interpreter {
                     fatalError("Var name taken (original stmtList)", 0);
                 }
                 //not duplicate can add to scope
+                //System.out.println(name);
                 scope.put(name, evaluateExpr(s.getExpr(), scopeStack));
+                if(!scopeStack.contains(scope)){
+                    scopeStack.add(scope);
+                }
             //handled delcaration, now handle return
             }else if(s.getType() == 1){
                 return evaluateExpr(s.getExpr(), scopeStack);
@@ -241,7 +245,7 @@ public class Interpreter {
                 return getFromScopeStack(scopeStack, ((IDENT) expr).getIdent());
             // past this the identifier is not available in scope
             } else {
-                throw new RuntimeException("var doesn't exist");
+                throw new RuntimeException("var doesn't exist: " + ((IDENT)expr).getIdent());
             }
         } else if (expr instanceof BinaryExpr) {
             BinaryExpr binaryExpr = (BinaryExpr)expr;
@@ -269,7 +273,6 @@ public class Interpreter {
             if(callExpr.getIdent().equals("right")){
                 // return right child of Ref
                 Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
-                System.out.println(ret);
                 return ret.getRef().getRight();
             }
             if(callExpr.getIdent().equals("isAtom")){
@@ -289,17 +292,16 @@ public class Interpreter {
             if(callExpr.getIdent().equals("isNil")){
                 // return 1 if Q is nil, 0 otherwise
                 Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
-                System.out.println("ret: " + ret);
                 if(ret.getINT() == null && ret.getRef()== null){
                     ret.heap = Ref.NIL;
                 }
                 if(ret.getINT() != null || ret.getRef() == null || !ret.getRef().isNil()){
-                    System.out.println("not nil");
+                    //System.out.println("not nil");
                     
                         return new Q((long)0);
                     
                 }
-                System.out.println("nil");
+                //System.out.println("nil");
                 return new Q((long)1);
             }
             if(callExpr.getIdent().equals("setLeft")){
@@ -316,6 +318,39 @@ public class Interpreter {
                 ret.heap.setRight(val);
                 return new Q((long)1 );
             }
+            if (callExpr.getIdent().equals("acq")){
+                // aquire lock of object referenced by r, return 1
+                Ref r = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack).heap;
+                int count = 0;
+                while(r.isLocked()){
+                    //System.out.println("Waiting for unlock on: " + r.toString());
+                    System.out.print("");
+                    // if(count > 10000){
+                    //     break;
+                    // }
+                    count++;
+                }
+                //synchronized(r){
+                    //if(!r.isLocked()){
+                        r.lock();
+                    //}
+
+                //}
+                return new Q((long)1 );
+            }
+            if (callExpr.getIdent().equals("rel")){
+                // release lock of object referenced by r, return1
+                Ref r = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack).heap;
+                //synchronized(r){
+                    //if(!r.isLocked()){
+                        r.release();
+                    //}else{
+                        //System.out.println("release error");
+                    //}
+                //}
+                return new Q((long)1 );
+            }
+            
             FuncDef funcDef = funcDefMap.get(callExpr.getIdent());
             
             FormalDeclList formalDeclList= funcDef.getFormalDeclList();
@@ -341,52 +376,37 @@ public class Interpreter {
         } else if( expr instanceof ConcurrentExpression){
             ConcurrentExpression concurrentExpression = (ConcurrentExpression) expr;
             BinaryExpr binaryExpr = concurrentExpression.getBinaryExpr();
-            // Create a list of expressions and variable scopes
-            List<Expr> exprList = new ArrayList<Expr>();
-            exprList.add(binaryExpr.getLeftExpr());
-            exprList.add(binaryExpr.getRightExpr());
-            List<List<Map<String, Q>>> variableScopeList = new ArrayList<List<Map<String, Q>>>();
-            variableScopeList.add(scopeStack);
-            variableScopeList.add(scopeStack);
 
-            //add two expressions to list, should be same scope TODO
+            // Create a ThreadPoolExecutor with 2 threads
+            ExecutorService executor = Executors.newFixedThreadPool(4);
 
-            // Create a ThreadPoolExecutor with 10 threads
-            ExecutorService executor = Executors.newFixedThreadPool(2);
-
-            // Submit each expression to the executor
-            List<Future<Q>> futureList = new ArrayList<>();
-            for (int i = 0; i < exprList.size(); i++) {
-                Expr conExpr = exprList.get(i);
-                List<Map<String, Q>> variableScope = variableScopeList.get(i);
-                ConcurrentExpr concurrentExpr = new ConcurrentExpr(conExpr, variableScope);
-                Future<Q> future = executor.submit(concurrentExpr);
-                futureList.add(future);
-            }
+            // Create and submit the Callable objects directly
+            Future<Q> future1 = executor.submit(new ConcurrentExpr(binaryExpr.getLeftExpr(), scopeStack));
+            Future<Q> future2 = executor.submit(new ConcurrentExpr(binaryExpr.getRightExpr(), scopeStack));
 
             // Wait for all computations to complete
-            // Wait for all computations to complete
-            List<Q> resultList = new ArrayList<>();
-            for (Future<Q> future : futureList) {
-                try {
-                    Q result = future.get();
-                    resultList.add(result);
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                }
+            Q result1 = null;
+            Q result2 = null;
+            System.out.println("we're waiting on results now");
+            try {
+                System.out.println("waiting on thread 1 result");
+                result1 = future1.get();
+                System.out.println("waiting on thread 2 result");
+                result2 = future2.get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
             }
-
 
             // Shutdown the executor
             executor.shutdown();
 
-            //collect results from resultList, create a new binaryExpression object and pass it into evaluate expr
+            // Use the results to create a new binaryExpression object and pass it into evaluate expr
             switch (binaryExpr.getOperator()) {
-                case BinaryExpr.PLUS: return new Q(resultList.get(0).getINT().getValue() + resultList.get(1).getINT().getValue());
-                case BinaryExpr.MINUS: return new Q(resultList.get(0).getINT().getValue() - resultList.get(1).getINT().getValue());
-                case BinaryExpr.TIMES: return new Q(resultList.get(0).getINT().getValue() * resultList.get(1).getINT().getValue()); //multiplication for proj1
-                case BinaryExpr.DOT: return new Q(new Ref(resultList.get(0), resultList.get(1)));
-                    
+                case BinaryExpr.PLUS: return new Q(result1.getINT().getValue() + result2.getINT().getValue());
+                case BinaryExpr.MINUS: return new Q(result1.getINT().getValue() - result2.getINT().getValue());
+                case BinaryExpr.TIMES: return new Q(result1.getINT().getValue() * result2.getINT().getValue()); //multiplication for proj1
+                case BinaryExpr.DOT: return new Q(new Ref(result1, result2));
+
                 default: throw new RuntimeException("Unhandled operator");
             }
 
@@ -463,6 +483,12 @@ public class Interpreter {
             case 2:
                 // Handle equals statement for variable declaration
                 // want to store variables in a variable map where they're paired with the function they were created in for scoping
+                // String ide = s.getVarDecl().getIdent();
+                // if(!withinScopeStack(scopeStack, ide)){
+                //     int len = scopeStack.size();
+                //     scopeStack.get(len-1).put(ide, evaluateExpr(s.getExpr(), scopeStack));
+
+                // }
                 return s;
             case 3:
                 // Handle if statement
@@ -486,7 +512,9 @@ public class Interpreter {
                 
                 //now create current scope to add stuff to for the list
                 Map<String, Q> currentScope = new HashMap<String, Q>();
+                //System.out.println("stack: " + scopeStack.size());
                 scopeStack.add(currentScope);
+                //System.out.println(scopeStack.size());
                 Stmt stmt;
                 StmtList l = s.getStmtList();
                 //now iterate through statement list
@@ -501,7 +529,16 @@ public class Interpreter {
                             fatalError("Var name taken (stmt -> stmtList)", 0);
                         }
                         //not duplicate can add to scope
-                        currentScope.put(name, evaluateExpr(stmt.getExpr(), scopeStack));
+                        //System.out.print("Var Added: " + name);
+                        Q output = evaluateExpr(stmt.getExpr(), scopeStack);
+                        //System.out.println(" Value: " + output.toString());
+                        currentScope.put(name, output);
+                        //System.out.println(currentScope.containsKey(name));
+                       
+                        //System.out.println(withinScopeStack(scopeStack, name));
+                        if(!scopeStack.contains(currentScope)){
+                            scopeStack.add(currentScope);
+                        }
                     //handled delcaration, now handle return
                     }else if(stmt.getType() == 1){
                         return stmt;
@@ -521,13 +558,14 @@ public class Interpreter {
                 return s;
             case 8:
                 //while
+                Stmt run = s;
                 while(evaluateCond(s.getCond(), scopeStack)){
-                    Stmt run = executeStmt(s.getStmt1(), scopeStack);
+                    run = executeStmt(s.getStmt1(), scopeStack);
                     if(run.getType() == 1){
                         return run;
                     }
                 }
-                return s;
+                return run;
             case 9:
                 //Call
                 String i = s.getIdent();
@@ -555,16 +593,18 @@ public class Interpreter {
             this.variableScope = variableScope;
         }
 
-        // public Q run() {
-        //     Q out = evaluateExpr(expr, variableScope);
-        //     return out;
-        // }
-
-        public Q call() throws Exception {
-            Q out = evaluateExpr(expr, variableScope);
+        public Q call() {
+            Q out = null;
+            try {
+                out = evaluateExpr(expr, variableScope);
+            } catch (Exception e) {
+                System.out.println("Exception occurred during execution: " + e.getMessage());
+                e.printStackTrace();
+            }
             return out;
         }
     }
+
 
 
         

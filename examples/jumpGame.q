@@ -34,7 +34,11 @@ mutable int jumpGame(Ref list) {
             farthest = best_step_reach;
             count = count + 1;
         }
-        int tmp = index + getVal(list, index);
+        /*print(getVal(list, index));*/
+        print(250);
+        int v = getVal(list, index);
+        int tmp = index + v;
+        print(tmp);
         if(tmp > best_step_reach) {
             best_step_reach = tmp;
         }
