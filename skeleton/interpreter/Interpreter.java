@@ -134,23 +134,20 @@ public class Interpreter {
     }
 
 
-    //method for placing functions in the global map
-    Void fillMap(FuncDefList funcDefList){
-        if(funcDefList != null){
-            FuncDef funcDef = funcDefList.getFuncDef();
-            String funcName = funcDef.getVarDecl().getIdent();
-            System.out.println("filling: " + funcName);
-            if(!funcDefMap.containsKey(funcName)){
-                funcDefMap.put(funcName, funcDef);
-            } else {
-                fatalError("Duplicate function names found" + funcName, 0);
-            }
-            //step
-            System.out.println(funcDefList.getNextFuncDef());
-            fillMap(funcDefList.getNextFuncDef());
+void fillMap(FuncDefList funcDefList) {
+    while (funcDefList != null) {
+        FuncDef funcDef = funcDefList.getFuncDef();
+        String funcName = funcDef.getVarDecl().getIdent();
+        System.out.println("filling: " + funcName);
+        if (funcDefMap.containsKey(funcName)) {
+            fatalError("Duplicate function names found: " + funcName, 0);
+        } else {
+            funcDefMap.put(funcName, funcDef);
         }
-        return null;
+        funcDefList = funcDefList.getNextFuncDef();
     }
+}
+
     
     public boolean withinScopeStack(List<Map<String, Q>> scopeStack, String name){
         for (Map<String, Q> map : scopeStack){
@@ -161,39 +158,31 @@ public class Interpreter {
         return false;
     }
 
-    public Q getFromScopeStack(List<Map<String, Q>> scopeStack, String name){
-        for (Map<String, Q> map : scopeStack){
-            if(map.containsKey(name)){
+    public Q getFromScopeStack(List<Map<String, Q>> scopeStack, String name) {
+        for (Map<String, Q> map : scopeStack) {
+            if (map.containsKey(name)) {
                 Q obj = map.get(name);
-                if(obj.inte != null){
+                if (obj.inte != null) {
                     return new Q(obj.inte.value);
                 }
-                if(obj.heap != Ref.NIL){
-                    return new Q(obj.heap);
-                }
-                return new Q();
+                return obj.heap != Ref.NIL ? new Q(obj.heap) : new Q();
             }
         }
         return null;
     }
 
-    public void addToScopeStack(List<Map<String, Q>> scopeStack, String name, Q q){
-        for(int i = scopeStack.size()-1; i>=0; i--){
-            if(!scopeStack.get(i).containsKey(name)){
+
+    public void addToScopeStack(List<Map<String, Q>> scopeStack, String name, Q q) {
+        for (int i = scopeStack.size() - 1; i >= 0; i--) {
+            if (!scopeStack.get(i).containsKey(name)) {
                 scopeStack.get(i).put(name, q);
             }
         }
     }
 
-    public void updateScopeStack(List<Map<String, Q>> scopeStack, String name, Q q){
-        for(int i = scopeStack.size()-1; i>=0; i--){
-            if(scopeStack.get(i).containsKey(name)){
-                // if(q.inte != null){
-                //     scopeStack.get(i).replace(name, new Q(q.inte.value));
-                // }
-                // if(q.heap != Ref.NIL){
-                //     scopeStack.get(i).replace(name, new Q(q.heap));
-                // }
+    public void updateScopeStack(List<Map<String, Q>> scopeStack, String name, Q q) {
+        for (int i = scopeStack.size() - 1; i >= 0; i--) {
+            if (scopeStack.get(i).containsKey(name)) {
                 scopeStack.get(i).replace(name, q);
             }
         }
@@ -236,22 +225,45 @@ public class Interpreter {
         return null;
     }
 
-    //method to evaluate expressions, takes expression, needs maps for scopeing, 
-    Q evaluateExpr(Expr expr, List<Map<String, Q>> scopeStack){
-        if(expr instanceof NilExpr){
-            return new Q(Ref.NIL);
-        }else if(expr instanceof ConstExpr){
-            return((ConstExpr) expr).getValue();
-        // case for identifiers
-        } else if(expr instanceof IDENT){
-            // identifier is available in the current scope
-            if(withinScopeStack(scopeStack, ((IDENT) expr).getIdent())){
-                return getFromScopeStack(scopeStack, ((IDENT) expr).getIdent());
-            // past this the identifier is not available in scope
-            } else {
-                throw new RuntimeException("var doesn't exist: " + ((IDENT)expr).getIdent());
-            }
+    // Main method to evaluate expressions
+    Q evaluateExpr(Expr expr, List<Map<String, Q>> scopeStack) {
+        if (expr instanceof NilExpr) {
+            return handleNilExpr();
+        } else if (expr instanceof ConstExpr) {
+            return handleConstExpr((ConstExpr) expr);
+        } else if (expr instanceof IDENT) {
+            return handleIdentExpr((IDENT) expr, scopeStack);
         } else if (expr instanceof BinaryExpr) {
+            return handleBinaryExpr((BinaryExpr) expr, scopeStack);
+        } else if (expr instanceof CallExpr) {
+            return handleCallExpr((CallExpr) expr, scopeStack);
+        } else if (expr instanceof TypeCast) {
+            return handleTypeCastExpr((TypeCast) expr, scopeStack);
+        } else if (expr instanceof ConcurrentExpression) {
+            return handleConcurrentExpression((ConcurrentExpression) expr, scopeStack);
+        } else {
+            throw new RuntimeException("Unhandled Expr type");
+        }
+    }
+
+    // Helper methods for each expression type
+    Q handleNilExpr() {
+        return new Q(Ref.NIL);
+    }
+
+    Q handleConstExpr(ConstExpr expr) {
+        return expr.getValue();
+    }
+
+    Q handleIdentExpr(IDENT expr, List<Map<String, Q>> scopeStack) {
+        if (withinScopeStack(scopeStack, expr.getIdent())) {
+            return getFromScopeStack(scopeStack, expr.getIdent());
+        } else {
+            throw new RuntimeException("var doesn't exist: " + expr.getIdent());
+        }
+    }
+
+    Q handleBinaryExpr(BinaryExpr expr, List<Map<String, Q>> scopeStack) {
             BinaryExpr binaryExpr = (BinaryExpr)expr;
             switch (binaryExpr.getOperator()) {
                 case BinaryExpr.PLUS: return new Q(evaluateExpr(binaryExpr.getLeftExpr(), scopeStack).getINT().value + evaluateExpr(binaryExpr.getRightExpr(), scopeStack).getINT().value);
@@ -261,26 +273,22 @@ public class Interpreter {
                     
                 default: throw new RuntimeException("Unhandled operator");
             }
-        }
-        //calls appear here, but first we need to implement FuncDefList and change runFunc to accept args as exprList
-         else if(expr instanceof CallExpr){
-            CallExpr callExpr = (CallExpr)expr;
+    }
+
+    Q handleCallExpr(CallExpr expr, List<Map<String, Q>> scopeStack) {
+                    CallExpr callExpr = (CallExpr)expr;
             if(callExpr.getIdent().equals("randomInt")){
-                //using ThreadLocalRandom to generate a long as Random's nextLong doesn't take parameters
                 return new Q(ThreadLocalRandom.current().nextLong((evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack).getINT().getValue())));
             }
             if(callExpr.getIdent().equals("left")){
-                // return left child of Ref
                 Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
                 return ret.getRef().getLeft();
             }
             if(callExpr.getIdent().equals("right")){
-                // return right child of Ref
                 Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
                 return ret.getRef().getRight();
             }
             if(callExpr.getIdent().equals("isAtom")){
-                // return 1 if Q is a nil Ref or an int, 0 otherwise
                 Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
                 if(ret.getINT() == null && ret.getRef()== null){
                     ret.heap = Ref.NIL;
@@ -294,29 +302,24 @@ public class Interpreter {
                 return new Q((long) 0);
             }
             if(callExpr.getIdent().equals("isNil")){
-                // return 1 if Q is nil, 0 otherwise
                 Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
                 if(ret.getINT() == null && ret.getRef()== null){
                     ret.heap = Ref.NIL;
                 }
                 if(ret.getINT() != null || ret.getRef() == null || !ret.getRef().isNil()){
-                    //System.out.println("not nil");
                     
                         return new Q((long)0);
                     
                 }
-                //System.out.println("nil");
                 return new Q((long)1);
             }
             if(callExpr.getIdent().equals("setLeft")){
-                // set left field of the Ref r to the Q value
                 Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
                 Q val= evaluateExpr(callExpr.getExprList().getNeExprList().getNeExprList().getExpr(), scopeStack);
                 ret.heap.setLeft(val);
                 return new Q((long)1 );
             }
             if(callExpr.getIdent().equals("setRight")){
-                // set right field of the Ref r to the Q value
                 Q ret = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack);
                 Q val= evaluateExpr(callExpr.getExprList().getNeExprList().getNeExprList().getExpr(), scopeStack);
                 ret.heap.setRight(val);
@@ -339,7 +342,6 @@ public class Interpreter {
             
             FormalDeclList formalDeclList= funcDef.getFormalDeclList();
             ExprList exprList = callExpr.getExprList();
-            //should make sure the above lists are the same length. will fail also if only one list is null
             if(formalDeclList != null && exprList != null){
                 if(formalDeclList.getNeFormalDeclList().length() != exprList.getNeExprList().length()){
                     fatalError("Incorrect number of parameters passed to method: " + funcDef.getVarDecl().getIdent(), 0);
@@ -349,16 +351,18 @@ public class Interpreter {
             }
             Map<String, Q> args = new HashMap<String, Q>();
             if(formalDeclList != null && exprList != null){
-                // only runs if there are args to fill, will runFunc handle empty map ok?
                 fillArgs(args, scopeStack, formalDeclList.getNeFormalDeclList(), exprList.getNeExprList());
             }
             return runFunc(funcDef, args);
-        } else if(expr instanceof TypeCast){
-            TypeCast typeCast = (TypeCast) expr;
-            //what type are we casting from doesn't matter
-            return evaluateExpr(typeCast.getCastExpr(), scopeStack);
-        } else if( expr instanceof ConcurrentExpression){
-            ConcurrentExpression concurrentExpression = (ConcurrentExpression) expr;
+        }
+    
+
+    Q handleTypeCastExpr(TypeCast expr, List<Map<String, Q>> scopeStack) {
+        return evaluateExpr(expr.getCastExpr(), scopeStack);
+    }
+
+    Q handleConcurrentExpression(ConcurrentExpression expr, List<Map<String, Q>> scopeStack) {
+         ConcurrentExpression concurrentExpression = (ConcurrentExpression) expr;
             BinaryExpr binaryExpr = concurrentExpression.getBinaryExpr();
 
             // Create a ThreadPoolExecutor with 2 threads
@@ -405,10 +409,6 @@ public class Interpreter {
             }
 
         }
-         else {
-            throw new RuntimeException("Unhandled Expr type");
-        }
-    }
 
     //method for placing args in the map
     Void fillArgs(Map<String, Q> funcArgs, List<Map<String, Q>> scopeStack, NeFormalDeclList declList, NeExprList exprList){
