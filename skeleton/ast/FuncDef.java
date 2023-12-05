@@ -14,10 +14,10 @@ public class FuncDef extends Program {
     //a function definition will have variable declarations followed by a list of statements
     final VarDecl varDecl;
     final FormalDeclList formalDeclList;
-    final StmtList stmtList;
+    final StatementList stmtList;
 
     //construct a program with an expression
-    public FuncDef(VarDecl varDecl, FormalDeclList formalDeclList, StmtList stmtList, Location loc) {
+    public FuncDef(VarDecl varDecl, FormalDeclList formalDeclList, StatementList stmtList, Location loc) {
         super(loc);
         this.varDecl = varDecl;
         this.formalDeclList = formalDeclList;
@@ -34,11 +34,11 @@ public class FuncDef extends Program {
         return varDecl;
     }
 
-    public FormalDeclList getFormalDeclList(){
+    public FormalDeclList getFormalDeclList(){//
         return formalDeclList;
     }
 
-    public StmtList getStmtList(){
+    public StatementList getStmtList(){
         return stmtList;
     }
     

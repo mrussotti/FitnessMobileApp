@@ -64,53 +64,59 @@ white_space = {new_line} | [ \t\f]
 
 
 /* types */
-"int"             { return symbol("int", INT); }
-"Ref"             { return symbol("Ref", REF); }
-"Q"               { return symbol("Q", _Q); }
-"nil"             { return symbol("nil", NIL); }
-"mutable"         { return symbol("mutable", MUTABLE); }
-"free"            { return symbol("free", FREE); }
+"int"             { return symbol("int", INT); } 
+"Ref"             { return symbol("Ref", REF); } 
+"Q"               { return symbol("Q", Q); } 
+"nil"             { return symbol("nil", NIL); } 
+"mutable"         { return symbol("mutable", MUT); } 
+"free"            { return symbol("free", FREE); } 
+
+
 
 /* separators */
-"."               { return symbol(".", DOT); }
-"+"               { return symbol("+",  PLUS); }
-"-"               { return symbol("-",  MINUS); }
-"("               { return symbol("(",  LPAREN); }
-")"               { return symbol(")",  RPAREN); }
-"*"               { return symbol("*",  TIMES); } //multiplication for proj1
-"{"               { return symbol("{",  LCURL); }
-"}"               { return symbol("}",  RCURL); }
-","               { return symbol(",", COMMA); }
-"["               { return symbol("[", LBRACK); }
-"]"               { return symbol("]", RBRACK); }
+"."               { return symbol(".", DOT); } 
+"+"               { return symbol("+",  PLUS); } 
+"-"               { return symbol("-",  MINUS); } 
 
 
-/* End statement or program */
+"("               { return symbol("(",  LPAREN); } 
+")"               { return symbol(")",  RPAREN); } 
+
+
+"*"               { return symbol("*",  TIMES); } 
+
+
+"{"               { return symbol("{",  LCURL); } 
+"}"               { return symbol("}",  RCURL); } 
+
+
+","               { return symbol(",", COMMA); } 
+
+
+"["               { return symbol("[", LBRACK); } 
+"]"               { return symbol("]", RBRACK); } 
+
 "return"          { return symbol("return",  RETURN); }
+
+
 ";"               { return symbol(";",  SEMICOLON); }
+"="               { return symbol("=", ASSIGN); } 
+"print"           { return symbol("print", PRINT); } 
 
-/* Assignment */
-"="               { return symbol("=", EQUALS); }
 
-/* Print */
-"print"           { return symbol("print", PRINT); }
 
-/* Compare */
-"<="              { return symbol("<=", LTE); }
-">="              { return symbol(">=", GTE); }
+"<="              { return symbol("<=", LEQ); }
+">="              { return symbol(">=", GEQ); }
 "=="              { return symbol("==", EQ); }
-"!="              { return symbol("!=", NOTEQ); }
+"!="              { return symbol("!=", NEQ); }
 "<"               { return symbol("<", LT); }
 ">"               { return symbol(">", GT); }
 "&&"              { return symbol("&&", AND); }
 "||"              { return symbol("||", OR); }
 "!"               { return symbol("!", NOT); }
 
-/* If/If-Else */
 "if"              { return symbol("if", IF); }
 "else"            { return symbol("else", ELSE); }
-
-/* While */
 "while"           { return symbol("while", WHILE); }
 
 /* comments */

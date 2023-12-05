@@ -206,27 +206,28 @@ public class Interpreter {
         List<Map<String, Q>> scopeStack = new ArrayList<Map<String, Q>>();
         scopeStack.add(funcArgs);
         scopeStack.add(scope);
-        StmtList l = func.getStmtList();
-        Stmt s;
+        StatementList l = func.getStmtList();
+        Statement s;
         //we iterate until the list is empty
         while(l != null){
             //take statement
             s = executeStmt(l.getStmt(), scopeStack);
             //variable declaration
-            if(s.getType() ==  2){
-                String name = s.getVarDecl().getIdent();
+            if(s instanceof  DeclarationStatement){
+                DeclarationStatement stmt2 = (DeclarationStatement)s;
+                String name = stmt2.getName();
                 //Don't allow duplicate var names
                 if(withinScopeStack(scopeStack, name)){
                     fatalError("Var name taken (original stmtList)", 0);
                 }
                 //not duplicate can add to scope
                 //System.out.println(name);
-                scope.put(name, evaluateExpr(s.getExpr(), scopeStack));
+                scope.put(name, evaluateExpr(stmt2.getInitExpression(), scopeStack));
                 if(!scopeStack.contains(scope)){
                     scopeStack.add(scope);
                 }
             //handled delcaration, now handle return
-            }else if(s.getType() == 1){
+            }else if(s instanceof ReturnStatement){
                 return evaluateExpr(s.getExpr(), scopeStack);
             }
             //pull off stmt we worked with
@@ -321,38 +322,6 @@ public class Interpreter {
                 ret.heap.setRight(val);
                 return new Q((long)1 );
             }
-            // if (callExpr.getIdent().equals("acq")){
-            //     // aquire lock of object referenced by r, return 1
-            //     Ref r = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack).heap;
-            //     int count = 0;
-            //     while(r.tryLock()){
-            //         //System.out.println("Waiting for unlock on: " + r.toString());
-            //         System.out.print("");
-            //         // if(count > 10000){
-            //         //     break;
-            //         // }
-            //         count++;
-            //     }
-            //     //synchronized(r){
-            //         //if(!r.isLocked()){
-            //             //r.lock();
-            //         //}
-
-            //     //}
-            //     return new Q((long)1 );
-            // }
-            // if (callExpr.getIdent().equals("rel")){
-            //     // release lock of object referenced by r, return1
-            //     Ref r = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack).heap;
-            //     //synchronized(r){
-            //         //if(!r.isLocked()){
-            //             r.release();
-            //         //}else{
-            //             //System.out.println("release error");
-            //         //}
-            //     //}
-            //     return new Q((long)1 );
-            // }
             if (callExpr.getIdent().equals("acq")){
                 Ref r = evaluateExpr(callExpr.getExprList().getNeExprList().getExpr(), scopeStack).heap;
                 while(!r.tryLock()){
@@ -499,40 +468,34 @@ public class Interpreter {
 
 
     // handle executing the statement
-    Stmt executeStmt(Stmt s, List<Map<String, Q>> scopeStack){
-        //handle different types of statements
-        switch (s.getType()) {
-            case 1:
-                // Handle return statement
-                return s;
-            case 2:
-                // Handle equals statement for variable declaration
-                // want to store variables in a variable map where they're paired with the function they were created in for scoping
-                // String ide = s.getVarDecl().getIdent();
-                // if(!withinScopeStack(scopeStack, ide)){
-                //     int len = scopeStack.size();
-                //     scopeStack.get(len-1).put(ide, evaluateExpr(s.getExpr(), scopeStack));
-
-                // }
-                return s;
-            case 3:
-                // Handle if statement
-                if(evaluateCond(s.getCond(), scopeStack)){
-                    return executeStmt(s.getStmt1(), scopeStack);
+    Statement executeStmt(Statement stmt, List<Map<String, Q>> scopeStack){
+        System.out.println("Executing statement: " + stmt);
+        if (stmt instanceof ReturnStatement){
+            // Object returnValue = evaluate(((ReturnStatement) stmt).getExpr(), scopeStack);
+            // System.out.println("Returning: " + returnValue);
+            return stmt;
+        }else if (stmt instanceof IfStatement){
+            System.out.println("If Statement: ");
+            IfStatement ifstmt = (IfStatement) stmt;
+            //idk
+            if(evaluateCond(ifstmt.getCond(), scopeStack)){
+                    return executeStmt(ifstmt.getBody(), scopeStack);
                 }
-                return s;
-            case 4:
-                // Handle if-else
-                if(evaluateCond(s.getCond(), scopeStack)){
-                    return executeStmt(s.getStmt1(), scopeStack);
+            return stmt;
+        }else if (stmt instanceof IfElseStatement){
+            System.out.println("If Else Statement ");
+            IfElseStatement ifstmt = (IfElseStatement) stmt;
+            //check 
+            if(evaluateCond(ifstmt.getCond(), scopeStack)){
+                    return executeStmt(ifstmt.getThenBody(), scopeStack);
                 }else{
-                    return executeStmt(s.getStmt2(), scopeStack);
+                    return executeStmt(ifstmt.getElseBody(), scopeStack);
                 }
-            case 5:
-                // Handle print statement
-                System.out.println(evaluateExpr(s.getExpr(), scopeStack));
-                return s;
-            case 6:
+        }else if (stmt instanceof BlockStatement){
+                //Map<String, Object> localContext = new HashMap<>(scopeStack); // helps with variable scope
+                //System.out.println("Block statement");
+                //Object result = executeStatementList(((BlockStatement)stmt).getBody(), localContext);
+                BlockStatement blkstmt = (BlockStatement) stmt;
                 // Handle statement block
                 
                 //now create current scope to add stuff to for the list
@@ -540,22 +503,23 @@ public class Interpreter {
                 //System.out.println("stack: " + scopeStack.size());
                 scopeStack.add(currentScope);
                 //System.out.println(scopeStack.size());
-                Stmt stmt;
-                StmtList l = s.getStmtList();
+                Statement s;
+                StatementList l = blkstmt.getStmtList();
                 //now iterate through statement list
                 while(l != null){
                     //take stmt to execute
-                    stmt = executeStmt(l.getStmt(), scopeStack);
+                    s = executeStmt(l.getStmt(), scopeStack);
                     //if we are doing a declaration
-                    if(stmt.getType() ==  2){
-                        String name = stmt.getVarDecl().getIdent();
+                    if(s instanceof  DeclarationStatement){
+                        DeclarationStatement stmt2 = (DeclarationStatement)s;
+                        String name = stmt2.getName();
                         //Don't allow duplicate var names
                         if(withinScopeStack(scopeStack, name)){
                             fatalError("Var name taken (stmt -> stmtList)", 0);
                         }
                         //not duplicate can add to scope
                         //System.out.print("Var Added: " + name);
-                        Q output = evaluateExpr(stmt.getExpr(), scopeStack);
+                        Q output = evaluateExpr(stmt2.getInitExpression(), scopeStack);
                         //System.out.println(" Value: " + output.toString());
                         currentScope.put(name, output);
                         //System.out.println(currentScope.containsKey(name));
@@ -565,47 +529,84 @@ public class Interpreter {
                             scopeStack.add(currentScope);
                         }
                     //handled delcaration, now handle return
-                    }else if(stmt.getType() == 1){
+                    }else if(stmt instanceof ReturnStatement){
                         return stmt;
                     }
                     //pulls off statement we worked with
                     l = l.getStmtList();
                 }
                 scopeStack.remove(currentScope);
-                return s;
-            case 7:
+                return stmt;
+
+        }else if (stmt instanceof DeclarationStatement){
+            System.out.println("DeclarationStatement ");
+            // DeclarationStatement declS = (DeclarationStatement) stmt;
+            // String name = declS.getName();
+            // System.out.println("DeclarationStatement of: "+ name);
+            // if (scopeStack.containsKey(name)){
+            //     fatalError("Redeclaratoin of variable", EXIT_DATA_RACE_ERROR);
+            // }
+            // Object value = evaluate(declS.getInitExpression(), scopeStack);
+            // scopeStack.put(name, value);
+            // return null;
+            return stmt;
+        }else if (stmt instanceof PrintStatement){
+            // System.out.println("PrintStatement ");
+            // System.out.println(evaluate(((PrintStatement) stmt).getExpr(), scopeStack));
+            // return null;
+            System.out.println(evaluateExpr(stmt.getExpr(), scopeStack));
+            return stmt;
+        }else if (stmt instanceof FreeStatement){
+            // nothing happends
+            System.out.println("Free Statement ");
+            return stmt;
+        }else if (stmt instanceof AssignmentStatement){
+                AssignmentStatement as = (AssignmentStatement) stmt;
                 //assignment
-                String ident = s.getIdent();
+                String ident = as.getIdentity();
                 //types?
-                Q value = evaluateExpr(s.getExpr(), scopeStack);
+                Q value = evaluateExpr(as.getExpr(), scopeStack);
                 //System.out.println("ident: " + ident + " value: " + value.toString());
                 updateScopeStack(scopeStack, ident, value);
-                return s;
-            case 8:
-                //while
-                Stmt run = s;
-                while(evaluateCond(s.getCond(), scopeStack)){
-                    run = executeStmt(s.getStmt1(), scopeStack);
-                    if(run.getType() == 1){
+                return stmt;
+        }else if (stmt instanceof WhileStatement){
+            // System.out.println("While Statement ");
+            // WhileStatement whileStmt = (WhileStatement) stmt;
+            // while (evaluate(whileStmt.getCondition(), scopeStack)){
+            //     System.out.println("Evaluating while");
+            //     Object nuts = executeStmt(whileStmt.getBody(), scopeStack);
+            //     if (nuts != null){//keep executing while till statement body is done?
+            //         System.out.println("Done evaluating while, here is result: "+nuts);
+            //         return nuts;
+            //     }
+            // }
+            // System.out.println("Done evaluating while");
+            // return null;
+
+            WhileStatement whileStatement = (WhileStatement)stmt;
+             Statement run = stmt;
+                while(evaluateCond(whileStatement.getCond(), scopeStack)){
+                    run = executeStmt(whileStatement.getBody(), scopeStack);
+                    if(run instanceof ReturnStatement){
                         return run;
                     }
                 }
                 return run;
-            case 9:
+
+        }else if (stmt instanceof CallStatement){
+                CallStatement cs = (CallStatement) stmt;
                 //Call
-                String i = s.getIdent();
-                ExprList exprList = s.getExprList();
+                String i = cs.getIdentity();
+                ExprList exprList = cs.getExprList();
                 //how to construct outside of parser?
                 CallExpr call = new CallExpr(i, exprList, null);
                 evaluateExpr(call, scopeStack);
-                return s;
-            case 10:
-                //Handle Free
-                return s;
-            default:
-                // Handle default case
+                return stmt;
+        }else {
+            throw new AssertionError("You forgot statement type ");
         }
-        return s;
+
+        //return stmt;
     }
 
 

@@ -35,7 +35,7 @@ public class BinaryExpr extends Expr {
         return expr2;
     }
 
-    @Override
+    //@Override
     //get string representation of object
     public String toString() {
         String s = null;

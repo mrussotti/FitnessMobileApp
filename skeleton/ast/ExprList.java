@@ -2,7 +2,7 @@ package ast;
 
 import java.io.PrintStream;
 
-public class ExprList extends Stmt {
+public class ExprList extends Statement {
 
     //a variable declaration will have data type followed by a string beginning with a character as a variable name
     final NeExprList neExprList;
