@@ -2,10 +2,10 @@ package ast;
 
 public class WhileStatement extends Statement{
 
-    final Cond c;
+    final Condition c;
     final Statement s;
 
-    public WhileStatement(Cond c, Statement s, Location loc){
+    public WhileStatement(Condition c, Statement s, Location loc){
         super(loc);
         this.s=s;
         this.c=c;
@@ -15,7 +15,7 @@ public class WhileStatement extends Statement{
         return s;
     }
 
-    public Cond getCond(){
+    public Condition getCond(){
         return c;
     }
     

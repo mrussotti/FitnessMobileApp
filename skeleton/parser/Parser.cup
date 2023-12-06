@@ -49,7 +49,7 @@ non terminal ExprList        exprList;
 non terminal NeExprList      neExprList;
 non terminal Expr            expr;
 non terminal BinaryExpr      binaryExpr;
-non terminal Cond            condition;
+non terminal Condition            condition;
 
 precedence left ELSE;
 precedence left OR;
@@ -177,26 +177,26 @@ binaryExpr ::= expr:e1 PLUS expr:e2
          {: RESULT = new BinaryExpr(e1, BinaryExpr.DOT, e2, loc(e1left, e1right)); :}
       ;
 
+
+
 condition ::= expr:e1 LEQ expr:e2
-         {: RESULT = new Cond(e1, Cond.LTE, e2, loc(e1left, e1right)); :}
+         {: RESULT = new BinaryComparison(e1, BinaryComparison.LEQ, e2, loc(e1left, e1right)); :}
       |  expr:e1 GEQ expr:e2
-         {: RESULT = new Cond(e1, Cond.GTE, e2, loc(e1left, e1right)); :}
+         {: RESULT = new BinaryComparison(e1, BinaryComparison.GEQ, e2, loc(e1left, e1right)); :}
       |  expr:e1 EQ expr:e2
-         {: RESULT = new Cond(e1, Cond.EQ, e2, loc(e1left, e1right)); :}
+         {: RESULT = new BinaryComparison(e1, BinaryComparison.EQ, e2, loc(e1left, e1right)); :}
       |  expr:e1 NEQ expr:e2
-         {: RESULT = new Cond(e1, Cond.NOTEQ, e2, loc(e1left, e1right)); :}
+         {: RESULT = new BinaryComparison(e1, BinaryComparison.NEQ, e2, loc(e1left, e1right)); :}
       |  expr:e1 LT expr:e2
-         {: RESULT = new Cond(e1, Cond.LT, e2, loc(e1left, e1right)); :}
+         {: RESULT = new BinaryComparison(e1, BinaryComparison.LT, e2, loc(e1left, e1right)); :}
       |  expr:e1 GT expr:e2
-         {: RESULT = new Cond(e1, Cond.GT, e2, loc(e1left, e1right)); :}
-         //Below begin with multiple conditions
+         {: RESULT = new BinaryComparison(e1, BinaryComparison.GT, e2, loc(e1left, e1right)); :}
       |  condition:c1 AND condition:c2
-         {: RESULT = new Cond(c1, Cond.AND, c2, loc(c1left, c1right)); :}
+         {: RESULT = new BinaryLogicalOperations(c1, BinaryLogicalOperations.AND, c2, loc(c1left, c1right)); :}
       |  condition:c1 OR condition:c2
-         {: RESULT = new Cond(c1, Cond.OR, c2, loc(c1left, c1right)); :}
-         // not condition
+         {: RESULT = new BinaryLogicalOperations(c1, BinaryLogicalOperations.OR, c2, loc(c1left, c1right)); :}
       |  NOT condition:c
-         {: RESULT = new Cond(Cond.NOT, c, loc(cleft, cright)); :}
+         {: RESULT = new UnaryLogicalOperations(c, UnaryLogicalOperations.NOT, loc(cleft, cright)); :}
       |  LPAREN condition:c RPAREN
          {: RESULT = c; :}
       ;

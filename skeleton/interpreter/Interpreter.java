@@ -424,41 +424,39 @@ void fillMap(FuncDefList funcDefList) {
 
     //method to handle condition evaluation
     // calls evaluate expression, passing forward scopeVars
-    boolean evaluateCond(Cond cond, List<Map<String, Q>> scopeStack){
-        switch (cond.getOperator()) {
-            case 1:
-                // Handle less than or equal to
-                return evaluateExpr(cond.getE1(), scopeStack).getINT().getValue() <= evaluateExpr(cond.getE2(), scopeStack).getINT().getValue();
-            case 2:
-                // Handle greater than or equal to
-                return  evaluateExpr(cond.getE1(), scopeStack).getINT().getValue() >=  evaluateExpr(cond.getE2(), scopeStack).getINT().getValue();
-            case 3:
-                // Handle equals
-                return ( evaluateExpr(cond.getE1(), scopeStack).getINT().getValue()).equals( evaluateExpr(cond.getE2(), scopeStack).getINT().getValue());
-            case 4:
-                // Handle not equals
-                return  evaluateExpr(cond.getE1(), scopeStack).getINT().getValue() !=  evaluateExpr(cond.getE2(), scopeStack).getINT().getValue();
-            case 5:
-                // Handle less than
-                return  evaluateExpr(cond.getE1(), scopeStack).getINT().getValue() <  evaluateExpr(cond.getE2(), scopeStack).getINT().getValue();
-            case 6:
-                // Handle greater than
-                return  evaluateExpr(cond.getE1(), scopeStack).getINT().getValue() >  evaluateExpr(cond.getE2(), scopeStack).getINT().getValue();
-            case 7:
-                // Handle logical AND
-                return evaluateCond(cond.getC1(), scopeStack) && evaluateCond(cond.getC2(), scopeStack);
-            case 8:
-                // Handle logical OR
-                return evaluateCond(cond.getC1(), scopeStack) || evaluateCond(cond.getC2(), scopeStack);
-            case 9:
-                // Handle logical NOT
-                return ! evaluateCond(cond.getC1(), scopeStack);
-            default:
-                // Handle default case
-                fatalError("operator doesn't exist", 0);
-        //Need to handle parentheses? Operator types for this don't seem to work
-        }
-        return false;
+    boolean evaluateCond(Condition condition, List<Map<String, Q>> scopeStack){
+    if (condition instanceof BinaryComparison){
+                BinaryComparison bcomp = (BinaryComparison) condition;
+                Long left = evaluateExpr(bcomp.getLeftExpr(), scopeStack).getINT().getValue();
+                Long right = evaluateExpr(bcomp.getRightExpr(), scopeStack).getINT().getValue();
+                System.out.println("Evaluating condition: BinaryComparison"+left +" "+ right );
+
+                switch (bcomp.getOperator()){
+                    case BinaryComparison.LEQ: return left <= right;
+                    case BinaryComparison.GEQ: return left >= right;
+                    case BinaryComparison.EQ: return left == right;
+                    case BinaryComparison.NEQ: return left != right;
+                    case BinaryComparison.LT: return left < right;
+                    case BinaryComparison.GT: return left > right;
+                    default: throw new AssertionError("you forgot a relational operator ");
+                }
+            } else if (condition instanceof BinaryLogicalOperations){
+                System.out.println("Evaluating condition: BinaryLogicalOperations" );
+                BinaryLogicalOperations boolcond = (BinaryLogicalOperations) condition;
+                switch(boolcond.getOperator()){
+                    case BinaryLogicalOperations.AND:
+                        return evaluateCond(boolcond.getLeftCond(), scopeStack) && evaluateCond(boolcond.getRightCond(), scopeStack);
+                    case BinaryLogicalOperations.OR:
+                        return evaluateCond(boolcond.getLeftCond(), scopeStack) || evaluateCond(boolcond.getRightCond(), scopeStack);
+                    default: throw new AssertionError ("You forgot a boolean operator");
+                }
+            }else if (condition instanceof UnaryLogicalOperations){
+                System.out.println("Evaluating condition: UnaryLogicalOperations" );
+                return ! evaluateCond(((UnaryLogicalOperations) condition).getCond(), scopeStack);
+            }else {
+                throw new AssertionError("you forgot a condition ");
+            }
+        //return false;
     }
 
 	public static void fatalError(String message, int processReturnCode) {

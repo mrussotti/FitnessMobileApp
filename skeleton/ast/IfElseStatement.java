@@ -2,10 +2,10 @@ package ast;
 
 public class IfElseStatement extends Statement{
 
-    final Cond c;
+    final Condition c;
     final Statement thenBody, elseBody;
 
-    public IfElseStatement(Cond c, Statement thenBody,Statement elseBody, Location loc){
+    public IfElseStatement(Condition c, Statement thenBody,Statement elseBody, Location loc){
         super(loc);
         this.c=c;
         this.thenBody=thenBody;
@@ -18,7 +18,7 @@ public class IfElseStatement extends Statement{
         return elseBody;
     }
 
-    public Cond getCond(){
+    public Condition getCond(){
         return c;
     }
     

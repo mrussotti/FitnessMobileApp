@@ -2,10 +2,10 @@ package ast;
 
 public class IfStatement extends Statement{
 
-    final Cond c;
+    final Condition c;
     final Statement s;
 
-    public IfStatement(Cond c, Statement s, Location loc){
+    public IfStatement(Condition c, Statement s, Location loc){
         super(loc);
         this.s=s;
         this.c=c;
@@ -15,7 +15,7 @@ public class IfStatement extends Statement{
         return s;
     }
 
-    public Cond getCond(){
+    public Condition getCond(){
         return c;
     }
     

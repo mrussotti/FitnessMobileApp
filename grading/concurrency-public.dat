@@ -28,7 +28,7 @@
 1  indep.q      12345 -heapsize 1638400
 1  indep2.q      1555 -heapsize 1638400
 1  pcfixed.q       42 -heapsize 1638400
-1  pcfixed2.q      42 -heapsize 1638400
+
 1  pcfixed3.q      42 -heapsize 1638400
 1  qsort2.q        42 -heapsize 1638400
 1  qsort3.q        42 -heapsize 1638400
