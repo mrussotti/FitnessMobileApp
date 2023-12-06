@@ -2,18 +2,18 @@ package ast;
 
 public class ConstExpr extends Expr {
 
-    final Object value;
+    final Q value;
 
     public ConstExpr(long value, Location loc) {
         super(loc);
-        this.value = value;
+        this.value = new Q(value);
     }
 
-    public Object getValue() {
+    public Q getValue() {
         return value;
     }
 
-    @Override
+    //@Override
     public String toString() {
         return value.toString();
     }

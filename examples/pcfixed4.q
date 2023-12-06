@@ -14,7 +14,9 @@ mutable Q produce(Ref flag, Ref data) {
 
 mutable Q consume(Ref flag, Ref data) {
     while (getFlagSync(flag) == 0) { /* empty */ }
+    print(1);
     int d = (int)left(data);
+    print(2);
     return d;
 }
 

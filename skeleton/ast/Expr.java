@@ -1,6 +1,6 @@
 package ast;
 
-public abstract class Expr extends ASTNode {
+public class Expr extends Statement {
 
     Expr(Location loc) {
         super(loc);

@@ -27,31 +27,176 @@ parser code {:
 
 :};
 
-terminal PLUS, MINUS, LPAREN, RPAREN;
-terminal Long    INTCONST;
+//terminal symbols
+terminal DOT, PLUS, MINUS, LPAREN, RPAREN, LCURL, PRINT, RCURL, COMMA, LBRACK, RBRACK;
+terminal TIMES, U_MINUS, RETURN, SEMICOLON, ASSIGN;
+terminal Long INTCONST;
+terminal String IDENT;
+terminal INT, REF, Q;
+terminal LEQ, GEQ, EQ, NEQ, LT, GT, AND, OR, NOT;
+terminal IF, ELSE, WHILE, NIL, MUT, FREE; 
 
 non terminal Program         program;
+non terminal FuncDefList     funcDefList;
+non terminal FuncDef         funcDef;
+non terminal VarDecl         varDecl;
+non terminal Type            type;
+non terminal FormalDeclList  formalDeclList;
+non terminal NeFormalDeclList neFormalDeclList;
+non terminal StatementList        statementList;
+non terminal Statement            statement;
+non terminal ExprList        exprList;
+non terminal NeExprList      neExprList;
 non terminal Expr            expr;
 non terminal BinaryExpr      binaryExpr;
+non terminal Condition            condition;
 
+precedence left ELSE;
+precedence left OR;
+precedence left AND;
+precedence left NOT;
+precedence left LEQ, GEQ, EQ, NEQ, LT, GT;
+precedence left DOT;
 precedence left PLUS, MINUS;
+precedence left TIMES;
+precedence left U_MINUS;
+
 
 start with program;
 
-program ::= expr:e
-            {: RESULT = new Program(e, loc(eleft, eright)); :}
+
+program ::= funcDefList:f
+            {: RESULT = new Program(f, loc(fleft, fright)); :}
          ;
 
-expr ::= INTCONST:c
+funcDefList ::= funcDef:f funcDefList:l
+            {: RESULT = new FuncDefList(f, l, loc(fleft, fright)); :}
+         |
+            {: RESULT = null; :}
+         ;
+
+funcDef ::= varDecl:v LPAREN formalDeclList:f RPAREN LCURL statementList:s RCURL
+         {: RESULT = new FuncDef(v, f, s, loc(vleft, vright)); :} 
+      ;
+
+varDecl ::= type:t IDENT:i
+         {: RESULT = new VarDecl(t, i, loc(tleft, tright)); :}
+      | MUT type:t IDENT:i
+         {: RESULT = new VarDecl(t, i, true, loc(tleft, tright)); :}
+      ;
+
+type ::=  INT:i
+         {: RESULT = new Type(Type.INT, loc(ileft, iright)); :}
+      | REF:r
+         {: RESULT = new Type(Type.REF, loc(rleft, rright)); :}
+      | Q:q
+         {: RESULT = new Type(Type.Q, loc(qleft, qright)); :}
+      ;
+
+formalDeclList ::= neFormalDeclList:n
+         {: RESULT = new FormalDeclList(n, loc(nleft, nright)); :}
+      |
+         {: RESULT = null; :}
+      ;
+
+neFormalDeclList ::= varDecl:v COMMA neFormalDeclList:n
+         {: RESULT = new NeFormalDeclList(v, n, loc(vleft, vright)); :}
+      | varDecl:v
+         {: RESULT = new NeFormalDeclList(v, loc(vleft, vright)); :}
+      ;
+
+statementList ::= statement:s statementList:l
+         {: RESULT = new StatementList(s, l, loc(sleft, sright)); :}
+      |
+         {: RESULT = null; :}
+      ;
+
+statement ::= varDecl:v ASSIGN expr:e SEMICOLON
+               {:RESULT = new DeclarationStatement(v, e, loc(vleft, vright));:}
+            | IF LPAREN condition:c RPAREN statement:s
+               {: RESULT = new IfStatement(c,s, loc(cleft, cright));:}
+            | IF LPAREN condition:c RPAREN statement:ts ELSE statement:es
+               {: RESULT = new IfElseStatement(c,ts,es, loc(cleft, cright));:}
+            | PRINT expr:e SEMICOLON
+               {:RESULT = new PrintStatement(e, loc(eleft, eright));:}
+            | FREE expr:e SEMICOLON
+               {:RESULT = new FreeStatement(e, loc(eleft, eright));:}
+            | RETURN expr:e SEMICOLON
+               {:RESULT = new ReturnStatement(e, loc(eleft, eright));:}
+            | LCURL statementList:sl RCURL
+               {:RESULT = new BlockStatement(sl, loc(slleft, slright));:}
+            | IDENT:i ASSIGN expr:e SEMICOLON
+               {:RESULT = new AssignmentStatement(i,e, loc(ileft, iright));:}
+            | WHILE LPAREN condition:c RPAREN statement:s
+               {:RESULT = new WhileStatement(c,s, loc(cleft, cright));:}
+            | IDENT:i LPAREN exprList:el RPAREN SEMICOLON
+               {:RESULT = new CallStatement(i,el, loc(ileft, iright));:}   
+               ;
+
+exprList ::= neExprList:n
+         {: RESULT = new ExprList(n, loc(nleft, nright)); :}
+      |
+         {: RESULT = null; :}
+      ;
+
+neExprList ::= expr:e COMMA neExprList:n
+         {: RESULT = new NeExprList(e, n, loc(eleft, eright)); :}
+      | expr:e
+         {: RESULT = new NeExprList(e, loc(eleft, eright)); :}
+      ;
+
+expr ::= NIL:n
+         {: RESULT = new NilExpr(loc(nleft, nright)); :}
+      | INTCONST:c
          {: RESULT = new ConstExpr(c, loc(cleft, cright)); :}
+      | IDENT:i
+         {: RESULT = new IDENT(i, loc(ileft, iright)); :}
+      | MINUS expr:e
+         {: RESULT = new BinaryExpr(new ConstExpr(0, null), BinaryExpr.MINUS, e, loc(eleft, eright)); :}
+         %prec U_MINUS
+      | LPAREN type:t RPAREN expr:e
+         {: RESULT = new TypeCast(t, e, loc(eleft, eright)); :}
+         %prec U_MINUS
+      | IDENT:i LPAREN exprList:e RPAREN
+         {: RESULT = new CallExpr(i, e, loc(ileft, iright)); :}
       |  binaryExpr:e
          {: RESULT = e; :}
+      | LBRACK binaryExpr:e RBRACK
+         {: RESULT = new ConcurrentExpression(e, loc(eleft, eright)); :}
       |  LPAREN expr:e RPAREN
          {: RESULT = e; :}
       ;
 
 binaryExpr ::= expr:e1 PLUS expr:e2
-               {: RESULT = new BinaryExpr(e1, BinaryExpr.PLUS, e2, loc(e1left, e1right)); :}
-            |  expr:e1 MINUS expr:e2
-               {: RESULT = new BinaryExpr(e1, BinaryExpr.MINUS, e2, loc(e1left, e1right)); :}
-            ;
+         {: RESULT = new BinaryExpr(e1, BinaryExpr.PLUS, e2, loc(e1left, e1right)); :}
+      |  expr:e1 MINUS expr:e2
+         {: RESULT = new BinaryExpr(e1, BinaryExpr.MINUS, e2, loc(e1left, e1right)); :}
+      |  expr:e1 TIMES expr:e2
+         {: RESULT = new BinaryExpr(e1, BinaryExpr.TIMES, e2, loc(e1left, e1right)); :}
+      | expr:e1 DOT expr:e2
+         {: RESULT = new BinaryExpr(e1, BinaryExpr.DOT, e2, loc(e1left, e1right)); :}
+      ;
+
+
+
+condition ::= expr:e1 LEQ expr:e2
+         {: RESULT = new BinaryComparison(e1, BinaryComparison.LEQ, e2, loc(e1left, e1right)); :}
+      |  expr:e1 GEQ expr:e2
+         {: RESULT = new BinaryComparison(e1, BinaryComparison.GEQ, e2, loc(e1left, e1right)); :}
+      |  expr:e1 EQ expr:e2
+         {: RESULT = new BinaryComparison(e1, BinaryComparison.EQ, e2, loc(e1left, e1right)); :}
+      |  expr:e1 NEQ expr:e2
+         {: RESULT = new BinaryComparison(e1, BinaryComparison.NEQ, e2, loc(e1left, e1right)); :}
+      |  expr:e1 LT expr:e2
+         {: RESULT = new BinaryComparison(e1, BinaryComparison.LT, e2, loc(e1left, e1right)); :}
+      |  expr:e1 GT expr:e2
+         {: RESULT = new BinaryComparison(e1, BinaryComparison.GT, e2, loc(e1left, e1right)); :}
+      |  condition:c1 AND condition:c2
+         {: RESULT = new BinaryLogicalOperations(c1, BinaryLogicalOperations.AND, c2, loc(c1left, c1right)); :}
+      |  condition:c1 OR condition:c2
+         {: RESULT = new BinaryLogicalOperations(c1, BinaryLogicalOperations.OR, c2, loc(c1left, c1right)); :}
+      |  NOT condition:c
+         {: RESULT = new UnaryLogicalOperations(c, UnaryLogicalOperations.NOT, loc(cleft, cright)); :}
+      |  LPAREN condition:c RPAREN
+         {: RESULT = c; :}
+      ;

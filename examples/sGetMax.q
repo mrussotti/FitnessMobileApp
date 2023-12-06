@@ -8,12 +8,16 @@ mutable Q main(int arg) {
   list = add(list, 32);
   list = add(list, 27);
   list = add(list, 1);
-  
+  print(list);
   return getMax(list);
 }
 
 mutable Ref add(Ref list, Q elem) {
   if (isNil(list) != 0) {
+    print(78);
+    print (elem);
+    print(list);
+    print(elem . nil);
     return elem . nil;
   }
   mutable Ref curr = list;
@@ -25,16 +29,24 @@ mutable Ref add(Ref list, Q elem) {
 }
 
 int length(Ref c) {
-  if (isAtom(c) != 0) return 0;
+  print(c);
+  print(isAtom(c));
+  if (isAtom(c) != 0){ 
+    print(55);
+    return 0;
+  }
   return 1 + length((Ref)right(c));
 }
 
 int getMax(Ref list){
 	mutable Ref dumList=list;
+  print(list);
 	int n = length(list);
+  print(n);
 	mutable int i=1;
 	mutable int currmax=0;
 	while(i<=n){
+    print(123);
 		if(currmax<(int)left(dumList))
 			currmax=(int)left(dumList);
 		dumList=(Ref)right(dumList);

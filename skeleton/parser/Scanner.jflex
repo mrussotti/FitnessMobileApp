@@ -49,7 +49,9 @@ import interpreter.Interpreter;
 
 
 IntLiteral = 0 | [1-9][0-9]*
-
+// HERE
+// identifiers are strings that begin with a character
+Identifier = [_a-zA-Z][_a-zA-Z0-9]*
 new_line = \r|\n|\r\n;
 
 white_space = {new_line} | [ \t\f]
@@ -60,17 +62,71 @@ white_space = {new_line} | [ \t\f]
 /* int literals */
 {IntLiteral} { return symbol("Intconst", INTCONST, Long.parseLong(yytext())); }
 
+
+/* types */
+"int"             { return symbol("int", INT); } 
+"Ref"             { return symbol("Ref", REF); } 
+"Q"               { return symbol("Q", Q); } 
+"nil"             { return symbol("nil", NIL); } 
+"mutable"         { return symbol("mutable", MUT); } 
+"free"            { return symbol("free", FREE); } 
+
+
+
 /* separators */
-"+"               { return symbol("+",  PLUS); }
-"-"               { return symbol("-",  MINUS); }
-"("               { return symbol("(",  LPAREN); }
-")"               { return symbol(")",  RPAREN); }
+"."               { return symbol(".", DOT); } 
+"+"               { return symbol("+",  PLUS); } 
+"-"               { return symbol("-",  MINUS); } 
+
+
+"("               { return symbol("(",  LPAREN); } 
+")"               { return symbol(")",  RPAREN); } 
+
+
+"*"               { return symbol("*",  TIMES); } 
+
+
+"{"               { return symbol("{",  LCURL); } 
+"}"               { return symbol("}",  RCURL); } 
+
+
+","               { return symbol(",", COMMA); } 
+
+
+"["               { return symbol("[", LBRACK); } 
+"]"               { return symbol("]", RBRACK); } 
+
+"return"          { return symbol("return",  RETURN); }
+
+
+";"               { return symbol(";",  SEMICOLON); }
+"="               { return symbol("=", ASSIGN); } 
+"print"           { return symbol("print", PRINT); } 
+
+
+
+"<="              { return symbol("<=", LEQ); }
+">="              { return symbol(">=", GEQ); }
+"=="              { return symbol("==", EQ); }
+"!="              { return symbol("!=", NEQ); }
+"<"               { return symbol("<", LT); }
+">"               { return symbol(">", GT); }
+"&&"              { return symbol("&&", AND); }
+"||"              { return symbol("||", OR); }
+"!"               { return symbol("!", NOT); }
+
+"if"              { return symbol("if", IF); }
+"else"            { return symbol("else", ELSE); }
+"while"           { return symbol("while", WHILE); }
 
 /* comments */
 "/*" [^*] ~"*/" | "/*" "*"+ "/"
                   { /* ignore comments */ }
 
 {white_space}     { /* ignore */ }
+
+// identifier
+{Identifier} { return symbol("Ident", IDENT, yytext()); }
 
 }
 
